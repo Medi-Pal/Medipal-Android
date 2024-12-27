@@ -7,9 +7,11 @@ import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.medipal.ui.screens.components.LoginScreen
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
@@ -26,8 +28,11 @@ fun MainScreen(
     val navController = rememberNavController()
     
     NavHost(navController = navController, startDestination = "login"){
-        composable("home") {
-            HomeScreen(navController)
+        composable("home/{user}", arguments = listOf(navArgument("user"){
+            type = NavType.StringType
+        })) {
+            val user = requireNotNull(it.arguments).getString("user")
+            HomeScreen(navController, user)
         }
         composable("login") {
             LoginScreen(
@@ -53,8 +58,8 @@ fun signInWithPhoneAuthCredential(
         .addOnCompleteListener(context as Activity) { task ->
             if(task.isSuccessful) {
                 Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
-                navController.navigate("home")
                 val user = task.result?.user
+                navController.navigate("home/user=${user?.phoneNumber}")
             } else {
                 if(task.exception is FirebaseAuthInvalidCredentialsException) {
                     Toast.makeText(context, "Invalid OTP", Toast.LENGTH_SHORT).show()

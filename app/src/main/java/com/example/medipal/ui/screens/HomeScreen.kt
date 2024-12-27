@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -16,6 +15,7 @@ import com.google.firebase.auth.auth
 @Composable
 fun HomeScreen(
     navController: NavController,
+    user: String?,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -23,7 +23,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        Text(text = "Successfully verified")
+        Text(text = "Successfully verified $user")
         Button(onClick = {
             Firebase.auth.signOut()
             navController.navigate("login")
