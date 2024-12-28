@@ -17,6 +17,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,11 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.medipal.ui.AuthViewModel
 
 @Composable
 fun OtpScreen(
     navController: NavController,
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory),
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -95,7 +99,8 @@ fun OtpScreen(
         }
         Spacer(modifier = Modifier.size(30.dp))
         Button(
-            onClick = { verifyPhoneNumberWithCode(context, storedVerificationId, otp, navController)},
+            onClick = {
+                authViewModel.verifyPhoneNumberWithCode(navController, context, otp) },
             colors = ButtonDefaults.buttonColors(
                 if(otp.length >= 6) tColor else Color.Gray
             )

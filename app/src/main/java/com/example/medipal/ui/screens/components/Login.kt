@@ -27,13 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.medipal.ui.screens.onLoginClicked
+import com.example.medipal.ui.AuthViewModel
 
 @Composable
 fun LoginScreen(
     navController: NavController,
-    modifier: Modifier = Modifier
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory)
 ) {
     val context = LocalContext.current
     var phoneNumber by remember {
@@ -84,8 +85,8 @@ fun LoginScreen(
         )
         Spacer(modifier = Modifier.size(30.dp))
         Button(
-            onClick = { onLoginClicked(context, navController, phoneNumber) {
-                Log.d("phoneBook", "sending otp")
+            onClick = { authViewModel.onLoginClicked(navController, context, phoneNumber){
+                Log.d("otp", "otp sent")
                 navController.navigate("otp")
             } },
             colors = ButtonDefaults.buttonColors(

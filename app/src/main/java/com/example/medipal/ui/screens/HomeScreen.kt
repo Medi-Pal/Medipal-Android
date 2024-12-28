@@ -8,14 +8,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.example.medipal.ui.AuthViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    user: String?,
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory),
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -23,10 +23,9 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        Text(text = "Successfully verified $user")
+        Text(text = "Successfully verified")
         Button(onClick = {
-            Firebase.auth.signOut()
-            navController.navigate("login")
+            authViewModel.signOut(navController)
         }) {
             Text(text = "Log out")
         }
