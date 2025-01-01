@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.medipal.ui.AuthViewModel
 import com.example.medipal.ui.screens.components.LoginScreen
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 @Composable
 fun MainScreen(
@@ -18,10 +20,13 @@ fun MainScreen(
     val startDestination = if(authViewModel.isAuthenticated()) "home" else "login"
 
     fun logOut() {
-        navController.popBackStack(route = "login", inclusive = false, saveState = false)
+        Firebase.auth.signOut()
+        navController.popBackStack("home", inclusive = true)
+        navController.navigate("login")
     }
 
     NavHost(navController = navController, startDestination = startDestination){
+
         composable("home") {
             HomeScreen(navController = navController, logOut = {logOut()})
         }
