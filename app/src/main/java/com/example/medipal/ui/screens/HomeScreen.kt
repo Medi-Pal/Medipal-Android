@@ -2,20 +2,21 @@ package com.example.medipal.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.medipal.ui.AuthViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory),
+    logOut: ()->Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -25,9 +26,15 @@ fun HomeScreen(
     ) {
         Text(text = "Successfully verified")
         Button(onClick = {
-            authViewModel.signOut(navController)
+            logOut()
         }) {
             Text(text = "Log out")
+        }
+        Spacer(modifier = modifier.height(10.dp))
+        Button(onClick = {
+            navController.navigate("qrScanner")
+        }) {
+            Text(text = "Scan QR")
         }
     }
 }

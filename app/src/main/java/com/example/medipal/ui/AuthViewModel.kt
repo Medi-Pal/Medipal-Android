@@ -58,6 +58,7 @@ class AuthViewModel: ViewModel() {
                             authenticationStatus = AuthenticationStatus.Authenticated
                         )
                     }
+                    navController.popBackStack(route = "login", inclusive = true)
                     navController.navigate("home")
                 } else {
                     if(task.exception is FirebaseAuthInvalidCredentialsException) {
