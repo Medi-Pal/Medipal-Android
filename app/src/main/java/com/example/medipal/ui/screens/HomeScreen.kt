@@ -15,7 +15,7 @@ import com.example.medipal.ui.AuthViewModel
 @Composable
 fun HomeScreen(
     navController: NavController,
-    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory),
+    logOut: ()->Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -25,7 +25,7 @@ fun HomeScreen(
     ) {
         Text(text = "Successfully verified")
         Button(onClick = {
-            authViewModel.signOut(navController)
+            logOut()
         }) {
             Text(text = "Log out")
         }

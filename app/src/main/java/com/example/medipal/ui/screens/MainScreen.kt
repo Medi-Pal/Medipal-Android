@@ -16,9 +16,14 @@ fun MainScreen(
 ) {
     val navController = rememberNavController()
     val startDestination = if(authViewModel.isAuthenticated()) "home" else "login"
+
+    fun logOut() {
+        navController.popBackStack(route = "login", inclusive = false, saveState = false)
+    }
+
     NavHost(navController = navController, startDestination = startDestination){
         composable("home") {
-            HomeScreen(navController = navController, authViewModel)
+            HomeScreen(navController = navController, logOut = {logOut()})
         }
         composable("login") {
             LoginScreen(
@@ -28,6 +33,9 @@ fun MainScreen(
         }
         composable("otp") { 
             OtpScreen(navController = navController, authViewModel)
+        }
+        composable("qrScanner"){
+            QrScanner()
         }
     }
     
