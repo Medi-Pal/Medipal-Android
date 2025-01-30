@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,20 +26,20 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(text = "Successfully verified")
-        Button(onClick = {
-            logOut()
-        },
-            modifier = modifier
-        ) {
-            Text(text = "Log out")
-        }
-        Spacer(modifier = modifier.height(10.dp))
-        Button(onClick = {
-            navController.navigate("qrScanner")
-        },
-            modifier = modifier
-        ) {
-            Text(text = "Scan QR")
-        }
+//        Button(onClick = {
+//            logOut()
+//        },
+//            modifier = Modifier
+//        ) {
+//            Text(text = "Log out", modifier)
+//        }
+//        Spacer(modifier = modifier.height(10.dp))
+//        Button(onClick = {
+//            navController.navigate("qrScanner")
+//        },
+//            modifier = Modifier
+//        ) {
+//            Text(text = "Scan QR")
+//        }
     }
 }
