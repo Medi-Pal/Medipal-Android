@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.medipal.navigation.Route
 import com.example.medipal.ui.AuthViewModel
 import com.example.medipal.ui.screens.components.LoginScreen
 import com.google.firebase.Firebase
@@ -17,29 +18,29 @@ fun MainScreen(
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
-    val startDestination = if(authViewModel.isAuthenticated()) "home" else "login"
+    val startDestination = if(authViewModel.isAuthenticated()) Route.HOME.route else Route.LOGIN.route
 
     fun logOut() {
         Firebase.auth.signOut()
-        navController.popBackStack("home", inclusive = true)
-        navController.navigate("login")
+        navController.popBackStack(Route.HOME.route, inclusive = true)
+        navController.navigate(Route.LOGIN.route)
     }
 
     NavHost(navController = navController, startDestination = startDestination){
 
-        composable("home") {
+        composable(Route.HOME.route) {
             HomeScreen(navController = navController, logOut = {logOut()})
         }
-        composable("login") {
+        composable(Route.LOGIN.route) {
             LoginScreen(
                 navController = navController,
                 authViewModel
             )
         }
-        composable("otp") { 
+        composable(Route.OTP.route) {
             OtpScreen(navController = navController, authViewModel)
         }
-        composable("qrScanner"){
+        composable(Route.QRCODE.route){
             QrScanner()
         }
     }

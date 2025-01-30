@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
+import com.example.medipal.navigation.Route
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
@@ -58,8 +59,8 @@ class AuthViewModel: ViewModel() {
                             authenticationStatus = AuthenticationStatus.Authenticated
                         )
                     }
-                    navController.popBackStack(route = "login", inclusive = true)
-                    navController.navigate("home")
+                    navController.popBackStack(route = Route.LOGIN.route, inclusive = true)
+                    navController.navigate(Route.HOME.route)
                 } else {
                     if(task.exception is FirebaseAuthInvalidCredentialsException) {
                         Toast.makeText(context, "Invalid OTP", Toast.LENGTH_SHORT).show()
@@ -133,7 +134,7 @@ class AuthViewModel: ViewModel() {
                 authenticationStatus = AuthenticationStatus.UnAuthenticated
             )
         }
-        navController.navigate("login")
+        navController.navigate(Route.LOGIN.route)
     }
 
     companion object{
