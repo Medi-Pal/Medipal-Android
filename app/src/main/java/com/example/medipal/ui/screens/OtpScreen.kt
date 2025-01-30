@@ -100,8 +100,8 @@ fun OtpScreen(
         }
         Spacer(modifier = Modifier.size(30.dp))
         Button(
-            onClick = {
-                authViewModel.verifyPhoneNumberWithCode(navController, context, otp) },
+            onClick = { authViewModel.verifyPhoneNumberWithCode(navController, context, otp) },
+            modifier = modifier
         ) {
             Text(text = "Verify OTP", color = Color.White)
         }
