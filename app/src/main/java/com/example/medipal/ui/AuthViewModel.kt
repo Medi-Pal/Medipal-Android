@@ -61,6 +61,9 @@ class AuthViewModel: ViewModel() {
                     }
                     navController.popBackStack(route = Route.LOGIN.route, inclusive = true)
                     navController.navigate(Route.HOME.route)
+                    _uiState.update {
+                        it.copy(authenticationStatus = AuthenticationStatus.Authenticated)
+                    }
                 } else {
                     if(task.exception is FirebaseAuthInvalidCredentialsException) {
                         Toast.makeText(context, "Invalid OTP", Toast.LENGTH_SHORT).show()

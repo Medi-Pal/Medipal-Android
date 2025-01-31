@@ -1,8 +1,10 @@
 package com.example.medipal.navigation
 
 enum class Route(val route: String){
-    HOME("home"),
-    LOGIN("login"),
-    OTP("otp"),
-    QRCODE("qr")
+    HOME("Home"),
+    LOGIN("Login"),
+    OTP("Otp"),
+    QRCODE("Scanner"),
+    EMERGENCY("Emergency"),
+    ACTIVITY("Activity")
 }
