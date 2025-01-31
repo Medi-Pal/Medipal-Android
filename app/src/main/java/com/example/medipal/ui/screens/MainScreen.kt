@@ -1,5 +1,6 @@
 package com.example.medipal.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircle
@@ -7,11 +8,13 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.AuthViewModel
+import com.example.medipal.ui.AuthenticationStatus
 import com.example.medipal.ui.screens.components.LoginScreen
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -43,8 +47,14 @@ fun MainScreen(
         navController.navigate(Route.LOGIN.route)
     }
 
+    val uiState = authViewModel.uiState.collectAsState()
+
+    val isAuthenticated = uiState.value.authenticationStatus==AuthenticationStatus.Authenticated
+
+    Log.d("Authentication", isAuthenticated.toString())
+
     Scaffold(
-        bottomBar = {if(authViewModel.isAuthenticated()){
+        bottomBar = {if(isAuthenticated){
             NavigationBar(navController)
         }}
     ) {contentPadding ->
@@ -64,6 +74,12 @@ fun MainScreen(
             composable(Route.QRCODE.route){
                 QrScanner()
             }
+            composable(Route.EMERGENCY.route){
+                Emergency(modifier)
+            }
+            composable(Route.ACTIVITY.route) {
+                Activity(modifier)
+            }
         }
     }
 }
@@ -78,7 +94,10 @@ fun NavigationBar(
     val unselectedIcons =
         listOf(Icons.Outlined.Home, Icons.Outlined.AddCircle, Icons.Outlined.Info, Icons.Outlined.DateRange)
 
-    NavigationBar {
+    NavigationBar(
+        contentColor = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+    ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {

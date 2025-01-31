@@ -26,13 +26,13 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(text = "Successfully verified")
-//        Button(onClick = {
-//            logOut()
-//        },
-//            modifier = Modifier
-//        ) {
-//            Text(text = "Log out", modifier)
-//        }
+        Button(onClick = {
+            logOut()
+        },
+            modifier = Modifier
+        ) {
+            Text(text = "Log out", modifier)
+        }
 //        Spacer(modifier = modifier.height(10.dp))
 //        Button(onClick = {
 //            navController.navigate("qrScanner")
