@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -18,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,12 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.medipal.R
 import com.example.medipal.ui.AuthViewModel
 
 @Composable
@@ -106,4 +109,72 @@ fun OtpScreen(
             Text(text = "Verify OTP", color = Color.White)
         }
     }
+}
+
+@Composable
+fun OtpTextField(
+    modifier: Modifier = Modifier,
+    otpText: String,
+    otpCount: Int = 6,
+    onOtpTextChange: (String, Boolean) -> Unit
+) {
+    LaunchedEffect(Unit) {
+        if (otpText.length > otpCount) {
+            throw IllegalArgumentException("Otp text value must not have more than otpCount: $otpCount characters")
+        }
+    }
+
+    BasicTextField(
+        modifier = modifier,
+        value = TextFieldValue(otpText, selection = TextRange(otpText.length)),
+        onValueChange = {
+            if (it.text.length <= otpCount) {
+                onOtpTextChange.invoke(it.text, it.text.length == otpCount)
+            }
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        decorationBox = {
+            Row(horizontalArrangement = Arrangement.Center) {
+                repeat(otpCount) { index ->
+                    CharView(
+                        index = index,
+                        text = otpText
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun CharView(
+    index: Int,
+    text: String
+) {
+    val isFocused = text.length == index
+    val char = when {
+        index == text.length -> "0"
+        index > text.length -> ""
+        else -> text[index].toString()
+    }
+    Text(
+        modifier = Modifier
+            .width(40.dp)
+            .border(
+                1.dp, when {
+                    isFocused -> MaterialTheme.colorScheme.outline
+                    else -> MaterialTheme.colorScheme.primary
+                }, RoundedCornerShape(8.dp)
+            )
+            .padding(2.dp),
+        text = char,
+        style = MaterialTheme.typography.titleSmall,
+        color = if (isFocused) {
+            MaterialTheme.colorScheme.outline
+        } else {
+            MaterialTheme.colorScheme.primary
+        },
+        textAlign = TextAlign.Center
+    )
 }
