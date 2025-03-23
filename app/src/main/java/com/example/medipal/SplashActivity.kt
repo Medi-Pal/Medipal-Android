@@ -19,6 +19,7 @@ class SplashActivity: ComponentActivity() {
             MedipalTheme {
                 AnimatedSplashScreen(){
                     context.startActivity(Intent(this, MainActivity::class.java))
+                    finish()
                 }
             }
         }

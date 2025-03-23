@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,7 +68,7 @@ fun Splash(
                 .padding(10.dp)
                 .width(100.dp),
                 contentScale = ContentScale.FillWidth)
-            Text(text = stringResource(id = R.string.app_name), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier.alpha(alpha))
+            Text(text = stringResource(id = R.string.app_name), color = Color.White, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier.alpha(alpha))
         }
     }
 
