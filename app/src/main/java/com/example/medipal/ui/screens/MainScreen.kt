@@ -30,8 +30,6 @@ import com.example.medipal.navigation.Route
 import com.example.medipal.ui.AuthViewModel
 import com.example.medipal.ui.AuthenticationStatus
 import com.example.medipal.ui.screens.components.LoginScreen
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 
 @Composable
 fun MainScreen(
@@ -42,9 +40,7 @@ fun MainScreen(
     val startDestination = if(authViewModel.isAuthenticated()) Route.HOME.route else Route.LOGIN.route
 
     fun logOut() {
-        Firebase.auth.signOut()
-        navController.popBackStack(Route.HOME.route, inclusive = true)
-        navController.navigate(Route.LOGIN.route)
+        authViewModel.signOut(navController)
     }
 
     val uiState = authViewModel.uiState.collectAsState()
@@ -89,7 +85,7 @@ fun NavigationBar(
     navController: NavController,
 ) {
     var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Home", "Scan", "Emergency", "Activity")
+    val items = listOf(Route.HOME.route, Route.QRCODE.route, Route.EMERGENCY.route, Route.ACTIVITY.route)
     val selectedIcons = listOf(Icons.Outlined.Home, Icons.Outlined.AddCircle, Icons.Outlined.Info, Icons.Outlined.DateRange)
     val unselectedIcons =
         listOf(Icons.Outlined.Home, Icons.Outlined.AddCircle, Icons.Outlined.Info, Icons.Outlined.DateRange)

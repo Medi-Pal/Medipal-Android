@@ -137,6 +137,7 @@ class AuthViewModel: ViewModel() {
                 authenticationStatus = AuthenticationStatus.UnAuthenticated
             )
         }
+        navController.popBackStack(Route.HOME.route, inclusive = true)
         navController.navigate(Route.LOGIN.route)
     }
 

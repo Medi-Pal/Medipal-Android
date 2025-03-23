@@ -69,7 +69,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
 
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
-
+    implementation("com.google.android.gms:play-services-base:18.5.0")
+    implementation("com.google.android.gms:play-services-tflite-java:16.4.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

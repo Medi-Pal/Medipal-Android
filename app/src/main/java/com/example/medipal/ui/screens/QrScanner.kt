@@ -13,6 +13,7 @@ fun QrScanner(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+
     val options = GmsBarcodeScannerOptions.Builder()
         .setBarcodeFormats(
             Barcode.FORMAT_QR_CODE,
