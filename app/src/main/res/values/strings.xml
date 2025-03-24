@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">MediPal</string>
+    <string name="welcome_back_you_ve">Welcome back you\'ve</string>
+    <string name="been_missed">been missed!</string>
+    <string name="verification_code">Verification code</string>
+    <string name="a_6_digit_code_has_been_sent_to_you">A 6 digit code has been sent to you</string>
+    <string name="verify_otp">Verify</string>
+    <string name="welcome_to">Welcome to</string>
 </resources>

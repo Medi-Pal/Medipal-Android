@@ -1,5 +1,6 @@
 package com.example.medipal.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,16 +27,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.medipal.R
 import com.example.medipal.ui.AuthViewModel
+import com.example.medipal.ui.screens.components.Greeting
 
 @Composable
 fun OtpScreen(
@@ -48,6 +49,9 @@ fun OtpScreen(
     var otp by remember {
         mutableStateOf("")
     }
+    var isSubmitted by remember {
+        mutableStateOf(false)
+    }
     val uiState = authViewModel.uiState.collectAsState()
     Column(
         modifier = Modifier
@@ -55,11 +59,12 @@ fun OtpScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "You will get an OTP via SMS")
-        TextButton(onClick = {navController.navigateUp()}) {
-            Text(text = "Edit Number")
-        }
-        Spacer(modifier = Modifier.size(50.dp))
+        Greeting(modifier = modifier)
+        Spacer(modifier = modifier.height(10.dp))
+        Text(text = stringResource(R.string.verification_code), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(modifier = modifier.height(10.dp))
+        Text(text = stringResource(R.string.a_6_digit_code_has_been_sent_to_you), style = MaterialTheme.typography.labelMedium)
+
         BasicTextField(
             value = otp,
             onValueChange = {
@@ -72,6 +77,7 @@ fun OtpScreen(
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = modifier
                     .padding(start = 16.dp, end = 16.dp)
             ) {
@@ -83,19 +89,25 @@ fun OtpScreen(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .width(40.dp)
+                            .height(40.dp)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline,
+                                RoundedCornerShape(8.dp)
+                            ),
                     ) {
-                        Text(
-                            text = number.toString(),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
                         Box(
-                            modifier = Modifier
-                                .width(30.dp)
-                                .height(2.dp)
-                                .border(1.dp, MaterialTheme.colorScheme.outline)
+                            modifier = Modifier,
                         ){
-
+                            Text(
+                                text = number.toString(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = modifier.padding(6.dp)
+                            )
                         }
                     }
                 }
@@ -103,78 +115,21 @@ fun OtpScreen(
         }
         Spacer(modifier = Modifier.size(30.dp))
         Button(
-            onClick = { authViewModel.verifyPhoneNumberWithCode(navController, context, otp) },
-            modifier = modifier
+            onClick = {
+                isSubmitted = true
+                if(otp.length==6){
+                    authViewModel.verifyPhoneNumberWithCode(navController, context, otp)
+                }else {
+                    Toast.makeText(context, "OTP should be of 6 digits", Toast.LENGTH_SHORT).show()
+                }},
+            shape = RoundedCornerShape(8.dp),
+            modifier = modifier.width(300.dp)
         ) {
-            Text(text = "Verify OTP", color = Color.White)
+            Text(text = stringResource(R.string.verify_otp))
+        }
+
+        TextButton(onClick = {navController.navigateUp()}) {
+            Text(text = "Edit Number")
         }
     }
-}
-
-@Composable
-fun OtpTextField(
-    modifier: Modifier = Modifier,
-    otpText: String,
-    otpCount: Int = 6,
-    onOtpTextChange: (String, Boolean) -> Unit
-) {
-    LaunchedEffect(Unit) {
-        if (otpText.length > otpCount) {
-            throw IllegalArgumentException("Otp text value must not have more than otpCount: $otpCount characters")
-        }
-    }
-
-    BasicTextField(
-        modifier = modifier,
-        value = TextFieldValue(otpText, selection = TextRange(otpText.length)),
-        onValueChange = {
-            if (it.text.length <= otpCount) {
-                onOtpTextChange.invoke(it.text, it.text.length == otpCount)
-            }
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-        decorationBox = {
-            Row(horizontalArrangement = Arrangement.Center) {
-                repeat(otpCount) { index ->
-                    CharView(
-                        index = index,
-                        text = otpText
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun CharView(
-    index: Int,
-    text: String
-) {
-    val isFocused = text.length == index
-    val char = when {
-        index == text.length -> "0"
-        index > text.length -> ""
-        else -> text[index].toString()
-    }
-    Text(
-        modifier = Modifier
-            .width(40.dp)
-            .border(
-                1.dp, when {
-                    isFocused -> MaterialTheme.colorScheme.outline
-                    else -> MaterialTheme.colorScheme.primary
-                }, RoundedCornerShape(8.dp)
-            )
-            .padding(2.dp),
-        text = char,
-        style = MaterialTheme.typography.titleSmall,
-        color = if (isFocused) {
-            MaterialTheme.colorScheme.outline
-        } else {
-            MaterialTheme.colorScheme.primary
-        },
-        textAlign = TextAlign.Center
-    )
 }

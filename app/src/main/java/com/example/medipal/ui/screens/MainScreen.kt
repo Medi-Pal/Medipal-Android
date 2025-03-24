@@ -37,7 +37,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
-    val startDestination = if(authViewModel.isAuthenticated()) Route.HOME.route else Route.LOGIN.route
+    val startDestination = if(authViewModel.isAuthenticated()) Route.HOME.route else Route.LANDING.route
 
     fun logOut() {
         authViewModel.signOut(navController)
@@ -57,6 +57,9 @@ fun MainScreen(
         NavHost(navController = navController, startDestination = startDestination){
             composable(Route.HOME.route) {
                 HomeScreen(navController = navController, logOut = {logOut()})
+            }
+            composable(Route.LANDING.route) {
+                LandingScreen(navController = navController)
             }
             composable(Route.LOGIN.route) {
                 LoginScreen(
