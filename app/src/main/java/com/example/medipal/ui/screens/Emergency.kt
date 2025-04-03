@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun Emergency(
+fun Notification(
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -19,7 +19,7 @@ fun Emergency(
         modifier = modifier.fillMaxSize()
     ) {
         Text(
-            text = "Emergency",
+            text = "Notification",
             textAlign = TextAlign.Center,
             modifier = Modifier
         )

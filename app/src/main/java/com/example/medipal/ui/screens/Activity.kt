@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun Activity(
+fun Prescription(
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -18,7 +18,7 @@ fun Activity(
         modifier = modifier.fillMaxSize()
     ) {
         Text(
-            text = "Activity",
+            text = "Prescription",
             modifier = Modifier
         )
     }
