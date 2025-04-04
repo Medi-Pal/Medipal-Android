@@ -6,16 +6,16 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.medipal.MedipalApplication
 import com.example.medipal.data.User
 import com.example.medipal.repository.UserRepository
-import com.example.medipal.ui.MedipalApp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class UserDetailsScreenViewModel(
-    private val repository: UserRepository
+    private val userRepository: UserRepository
 ): ViewModel() {
     private val _uiState = MutableStateFlow(User(0, "", "", ""))
     var uiState = _uiState.asStateFlow()
@@ -23,7 +23,7 @@ class UserDetailsScreenViewModel(
 
     init {
         viewModelScope.launch {
-            val user = repository.getUser()
+            val user = userRepository.getUser()
             _uiState.value = user ?: User(0, "", "", "")
         }
     }
@@ -49,22 +49,22 @@ class UserDetailsScreenViewModel(
         if(_uiState.value.name.length >= 3 && validateEmail()){
             isValid = true
             viewModelScope.launch {
-                repository.insertOrUpdateUser(_uiState.value)
+                userRepository.insertOrUpdateUser(_uiState.value)
             }
         }
     }
 
     fun deleteUser(){
         viewModelScope.launch {
-            repository.deleteUsers()
+            userRepository.deleteUsers()
         }
     }
 
     companion object{
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val medipalApp = (this[APPLICATION_KEY] as MedipalApp)
-                UserDetailsScreenViewModel(medipalApp.appContainer.userRepository)
+                val application = (this[APPLICATION_KEY] as MedipalApplication)
+                UserDetailsScreenViewModel(application.container.userRepository)
             }
         }
     }

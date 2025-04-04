@@ -8,10 +8,13 @@ enum class Route(val route: String){
     SOS("Sos"),
     QRCODE("Scanner"),
     NOTIFICATION("Notification"),
-    PRESCRIPTION("Prescription"),
+    PRESCRIPTION_LIST("PrescriptionList"),
+    PRESCRIPTION_DETAIL("Prescription/{prescriptionId}"),
     USER_DETAILS_SCREEN("UserDetails"),
     PROFILE("Profile"),
     EDIT_PROFILE("EditProfile"),
     PRIVACY_POLICY("PrivacyPolicy"),
     SETTINGS("Settings"),
+    ARTICLES("Articles"),
+    ARTICLE_DETAIL("ArticleDetail?title={title}&imageRes={imageRes}&content={content}&readTime={readTime}")
 }

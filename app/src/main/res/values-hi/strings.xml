@@ -1,4 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MediPal</string>
+    <string name="edit_number">नंबर बदलें</string>
+    <string name="otp_length_error">OTP 6 अंकों का होना चाहिए</string>
+    
+    <!-- Landing Screen -->
+    <string name="get_started">शुरू करें</string>
+    <string name="next">अगला</string>
+    <string name="smart_prescriptions">स्मार्ट नुस्खे</string>
+    <string name="smart_prescriptions_desc1">कागज़ी भीड़ को अलविदा कहें-</string>
+    <string name="smart_prescriptions_desc2">त्वरित पहुंच के लिए नुस्खों को</string>
+    <string name="smart_prescriptions_desc3">डिजिटल बनाएं</string>
+    <string name="stay_on_track">ट्रैक पर रहें</string>
+    <string name="stay_on_track_desc1">अपनी दवाओं और अपॉइंटमेंट के बारे में</string>
+    <string name="stay_on_track_desc2">सूचित रहें, बेहतर स्वास्थ्य</string>
+    <string name="stay_on_track_desc3">प्रबंधन सुनिश्चित करें</string>
+    <string name="medical_history">चिकित्सा इतिहास</string>
+    <string name="medical_history_desc1">महत्वपूर्ण रिकॉर्ड कभी भी देखें और</string>
+    <string name="medical_history_desc2">जरूरत पड़ने पर तुरंत सहायता</string>
+    <string name="medical_history_desc3">प्राप्त करें।</string>
+    
+    <!-- Prescription Screen -->
+    <string name="my_prescriptions">मेरे नुस्खे</string>
+    <string name="hospital_name">अस्पताल का नाम</string>
+    <string name="address">पता</string>
+    <string name="doctor_prefix">डॉ.</string>
+    <string name="specialization">हड्डी रोग विशेषज्ञ</string>
+    <string name="prescription_number">नुस्खा संख्या: %1$s</string>
+    <string name="prescription_date">दिनांक: %1$s</string>
+    <string name="medicine_name">दवा का नाम:</string>
+    <string name="medicine_time">समय</string>
+    <string name="patient_name">मरीज का नाम: %1$s</string>
+    <string name="patient_age">उम्र: %1$s</string>
+    <string name="patient_address">पता: %1$s</string>
+    <string name="patient_contact">संपर्क नंबर: %1$s</string>
+    <string name="doctor_signature">डॉक्टर के हस्ताक्षर</string>
+
+    <!-- Settings Screen -->
+    <string name="settings">सेटिंग्स</string>
+    <string name="light_theme">लाइट थीम</string>
+    <string name="notifications">सूचनाएं</string>
+    <string name="delete_account">खाता हटाएं</string>
+    <string name="language">भाषा</string>
+    <string name="english">अंग्रेज़ी</string>
+    <string name="hindi">हिंदी</string>
+    <string name="french">फ्रेंच</string>
 </resources>

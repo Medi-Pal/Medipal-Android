@@ -52,6 +52,7 @@ fun OtpScreen(
     var isSubmitted by remember {
         mutableStateOf(false)
     }
+    val otpError = stringResource(R.string.otp_length_error)
     val uiState = authViewModel.uiState.collectAsState()
     Column(
         modifier = Modifier
@@ -120,7 +121,7 @@ fun OtpScreen(
                 if(otp.length==6){
                     authViewModel.verifyPhoneNumberWithCode(navController, context, otp)
                 }else {
-                    Toast.makeText(context, "OTP should be of 6 digits", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, otpError, Toast.LENGTH_SHORT).show()
                 }},
             shape = RoundedCornerShape(8.dp),
             modifier = modifier.width(300.dp)
@@ -129,7 +130,7 @@ fun OtpScreen(
         }
 
         TextButton(onClick = {navController.navigateUp()}) {
-            Text(text = "Edit Number")
+            Text(text = stringResource(R.string.edit_number))
         }
     }
 }

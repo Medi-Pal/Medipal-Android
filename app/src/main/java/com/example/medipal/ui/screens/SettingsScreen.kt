@@ -27,24 +27,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.medipal.R
+import com.example.medipal.ui.screens.viewmodels.LanguageViewModel
+
+data class Language(val code: String, val nameResId: Int)
 
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    languageViewModel: LanguageViewModel,
     modifier: Modifier = Modifier
 ) {
-    val listOfItems = listOf("Light Theme", "Notifications", "Delete Account", "Language")
+    val context = LocalContext.current
+    val activity = context as androidx.activity.ComponentActivity
+    
+    val languages = listOf(
+        Language("en", R.string.english),
+        Language("hi", R.string.hindi),
+        Language("fr", R.string.french)
+    )
+    
+    val currentLanguage = remember { mutableStateOf(languageViewModel.getStoredLanguage()) }
+
+    val listOfItems = listOf(
+        stringResource(R.string.light_theme),
+        stringResource(R.string.notifications),
+        stringResource(R.string.delete_account),
+        stringResource(R.string.language)
+    )
     val listOfIcons = listOf(R.drawable.light_theme, R.drawable.notification, R.drawable.delete_account, R.drawable.language_icon)
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        ProfileTopBar(navController = navController, text = "Settings")
+        ProfileTopBar(navController = navController, text = stringResource(R.string.settings))
         Column(
             modifier = modifier
                 .padding(horizontal = 20.dp)
@@ -105,7 +128,7 @@ fun SettingsScreen(
                 mutableStateOf(false)
             }
             TextButton(
-                onClick = {isExpanded = !isExpanded},
+                onClick = { isExpanded = !isExpanded },
                 modifier = Modifier
             ) {
                 Image(
@@ -125,12 +148,22 @@ fun SettingsScreen(
                     onDismissRequest = { isExpanded = false },
                     modifier = Modifier.width(300.dp)
                 ) {
-                    DropdownMenuItem(text = { Text(text = "English") }, onClick = { /*TODO*/ })
-                    DropdownMenuItem(text = { Text(text = "Hindi") }, onClick = { /*TODO*/ })
-                    DropdownMenuItem(text = { Text(text = "French") }, onClick = { /*TODO*/ })
+                    languages.forEach { language ->
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(language.nameResId)) },
+                            onClick = {
+                                languageViewModel.setLocale(language.code)
+                                currentLanguage.value = language.code
+                                isExpanded = false
+                                // Recreate activity to apply language change
+                                activity.finish()
+                                activity.startActivity(activity.intent)
+                                activity.overridePendingTransition(0, 0)
+                            }
+                        )
+                    }
                 }
             }
         }
-
     }
 }

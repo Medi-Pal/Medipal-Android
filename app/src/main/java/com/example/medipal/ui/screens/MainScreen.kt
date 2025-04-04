@@ -23,20 +23,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.AuthViewModel
 import com.example.medipal.ui.AuthenticationStatus
 import com.example.medipal.ui.screens.components.LoginScreen
+import com.example.medipal.ui.screens.viewmodels.LanguageViewModel
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
+import java.util.*
 
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory),
     userDetailsScreenViewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory),
+    languageViewModel: LanguageViewModel = viewModel(factory = LanguageViewModel.factory),
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
@@ -88,8 +93,8 @@ fun MainScreen(
             composable(Route.NOTIFICATION.route){
                 Notification()
             }
-            composable(Route.PRESCRIPTION.route) {
-                Prescription()
+            composable(Route.PRESCRIPTION_LIST.route) {
+                PrescriptionListScreen(navController = navController)
             }
             composable(Route.PROFILE.route) {
                 ProfileScreen(navController, logOut = { logOut() }, name = name)
@@ -98,7 +103,46 @@ fun MainScreen(
                 EditProfileScreen(navController = navController, modifier.padding(contentPadding))
             }
             composable(Route.SETTINGS.route) {
-                SettingsScreen(navController = navController, modifier)
+                SettingsScreen(
+                    navController = navController,
+                    languageViewModel = languageViewModel
+                )
+            }
+            composable(Route.ARTICLES.route) {
+                ArticlesScreen(
+                    navController = navController
+                )
+            }
+            composable(
+                route = Route.ARTICLE_DETAIL.route,
+                arguments = listOf(
+                    navArgument("title") { type = NavType.StringType },
+                    navArgument("imageRes") { type = NavType.IntType },
+                    navArgument("content") { type = NavType.StringType },
+                    navArgument("readTime") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val title = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("title") ?: "", "UTF-8")
+                val imageRes = backStackEntry.arguments?.getInt("imageRes") ?: 0
+                val content = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("content") ?: "", "UTF-8")
+                val readTime = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("readTime") ?: "", "UTF-8")
+                
+                ArticleDetailScreen(
+                    navController = navController,
+                    article = Article(title, imageRes, content, readTime)
+                )
+            }
+            composable(
+                route = Route.PRESCRIPTION_DETAIL.route,
+                arguments = listOf(
+                    navArgument("prescriptionId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val prescriptionId = backStackEntry.arguments?.getString("prescriptionId") ?: ""
+                PrescriptionScreen(
+                    navController = navController,
+                    prescriptionId = prescriptionId
+                )
             }
         }
     }
@@ -111,7 +155,7 @@ fun NavigationBar(
 ) {
     val listOfIcons = listOf(R.drawable.home, R.drawable.sos, R.drawable.qr, R.drawable.bell, R.drawable.prescription)
     val contentDescription = listOf("Home", "Sos", "QR", "Notification", "Prescription")
-    val listOfRoutes = listOf(Route.HOME, Route.SOS, Route.QRCODE, Route.NOTIFICATION, Route.PRESCRIPTION)
+    val listOfRoutes = listOf(Route.HOME, Route.SOS, Route.QRCODE, Route.NOTIFICATION, Route.PRESCRIPTION_LIST)
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -142,29 +186,28 @@ fun NavbarIcon(
     route: Route,
     navController: NavController
 ) {
-        IconButton(
-            onClick = {
-                val navBackStackEntry = navController.currentBackStackEntry?.destination?.route
-                if(navBackStackEntry != route.route){
-                    navController.navigate(route.route)
-                }},
-            modifier = modifier.size(60.dp)
-        ) {
-            if(route == Route.QRCODE) {
-                Image(
-                    painter = painterResource(id = icon),
-                    contentDescription = contentDescription,
-                    modifier = modifier
-                        .fillMaxSize()
-                )
-            }
-            else {
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = contentDescription,
-                    modifier
-                )
-            }
+    IconButton(
+        onClick = {
+            val navBackStackEntry = navController.currentBackStackEntry?.destination?.route
+            if(navBackStackEntry != route.route){
+                navController.navigate(route.route)
+            }},
+        modifier = modifier.size(60.dp)
+    ) {
+        if(route == Route.QRCODE) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = contentDescription,
+                modifier = modifier
+                    .fillMaxSize()
+            )
         }
-
+        else {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = contentDescription,
+                modifier
+            )
+        }
+    }
 }

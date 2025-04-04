@@ -65,7 +65,7 @@ fun ProfileList(
     modifier: Modifier = Modifier
 ){
     val listOfItems = listOf("Edit Profile", "My Prescriptions", "Privacy Policy", "Settings", "Logout")
-    val listOfRoutes = listOf(Route.EDIT_PROFILE, Route.PRESCRIPTION, Route.PRIVACY_POLICY, Route.SETTINGS)
+    val listOfRoutes = listOf(Route.EDIT_PROFILE, Route.PRESCRIPTION_LIST, Route.PRIVACY_POLICY, Route.SETTINGS)
     val listOfIcons = listOf(R.drawable.edit_profile, R.drawable.my_prescription, R.drawable.privacy_policy, R.drawable.settings, R.drawable.logout)
     Column(
         verticalArrangement = Arrangement.Center,

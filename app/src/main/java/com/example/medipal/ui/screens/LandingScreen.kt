@@ -136,7 +136,7 @@ fun LandingScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = if(index == 2) "Get Started" else "Next")
+                    Text(text = if(index == 2) stringResource(R.string.get_started) else stringResource(R.string.next))
                     Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
                 }
             }
@@ -148,14 +148,14 @@ fun LandingScreen(
 fun SmartPrescriptions(
     modifier: Modifier = Modifier
 ) {
-    Text(text = "Smart Prescriptions", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier)
+    Text(text = stringResource(R.string.smart_prescriptions), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier)
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Say goodbye to paper clutter-", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        Text(text = "digitize prescriptions for quick", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        Text(text = "access", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.smart_prescriptions_desc1), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.smart_prescriptions_desc2), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.smart_prescriptions_desc3), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
     }
 }
 
@@ -163,14 +163,14 @@ fun SmartPrescriptions(
 fun StayOnTrack(
     modifier: Modifier = Modifier
 ) {
-    Text(text = "Stay on Track", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier)
+    Text(text = stringResource(R.string.stay_on_track), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier)
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Get notified about your medications", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        Text(text = "and appointments, ensuring better", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        Text(text = "health management", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.stay_on_track_desc1), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.stay_on_track_desc2), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.stay_on_track_desc3), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
     }
 }
 
@@ -178,13 +178,13 @@ fun StayOnTrack(
 fun MedicalHistory(
     modifier: Modifier = Modifier
 ) {
-    Text(text = "Medical History", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier)
+    Text(text = stringResource(R.string.medical_history), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, modifier = modifier)
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Access vital records anytime and", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        Text(text = "get immediate assistance when", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-        Text(text = "needed.", style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.medical_history_desc1), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.medical_history_desc2), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.medical_history_desc3), style = MaterialTheme.typography.titleMedium, modifier = modifier, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
     }
 }

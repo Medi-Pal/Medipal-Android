@@ -6,11 +6,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
+import com.example.medipal.MedipalApplication
 import com.example.medipal.navigation.Route
 import com.example.medipal.repository.UserRepository
 import com.google.firebase.Firebase
@@ -33,8 +33,8 @@ data class LoginUiState(
 )
 
 class AuthViewModel(
-    val userRepository: UserRepository,
-): ViewModel() {
+    private val userRepository: UserRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState(
         authenticationStatus = if( isAuthenticated() ) AuthenticationStatus.Authenticated else AuthenticationStatus.UnAuthenticated
     ))
@@ -150,11 +150,11 @@ class AuthViewModel(
         navController.navigate(Route.LOGIN.route)
     }
 
-    companion object{
+    companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val medipalApp = (this[APPLICATION_KEY] as MedipalApp)
-                AuthViewModel(userRepository = medipalApp.appContainer.userRepository)
+                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MedipalApplication)
+                AuthViewModel(userRepository = application.container.userRepository)
             }
         }
     }

@@ -1,4 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MediPal</string>
+    <string name="edit_number">Modifier le numéro</string>
+    <string name="otp_length_error">Le code OTP doit contenir 6 chiffres</string>
+    
+    <!-- Landing Screen -->
+    <string name="get_started">Commencer</string>
+    <string name="next">Suivant</string>
+    <string name="smart_prescriptions">Ordonnances Intelligentes</string>
+    <string name="smart_prescriptions_desc1">Dites adieu au désordre papier-</string>
+    <string name="smart_prescriptions_desc2">numérisez les ordonnances pour un</string>
+    <string name="smart_prescriptions_desc3">accès rapide</string>
+    <string name="stay_on_track">Restez sur la Bonne Voie</string>
+    <string name="stay_on_track_desc1">Soyez notifié de vos médicaments</string>
+    <string name="stay_on_track_desc2">et rendez-vous, assurant une meilleure</string>
+    <string name="stay_on_track_desc3">gestion de la santé</string>
+    <string name="medical_history">Historique Médical</string>
+    <string name="medical_history_desc1">Accédez aux dossiers vitaux à tout moment</string>
+    <string name="medical_history_desc2">et obtenez une assistance immédiate</string>
+    <string name="medical_history_desc3">si nécessaire.</string>
+    
+    <!-- Prescription Screen -->
+    <string name="my_prescriptions">Mes Ordonnances</string>
+    <string name="hospital_name">NOM DE L\'HÔPITAL</string>
+    <string name="address">Adresse</string>
+    <string name="doctor_prefix">Dr.</string>
+    <string name="specialization">Orthopédiste</string>
+    <string name="prescription_number">Ordonnance n°: %1$s</string>
+    <string name="prescription_date">Date: %1$s</string>
+    <string name="medicine_name">Nom du médicament:</string>
+    <string name="medicine_time">Horaire</string>
+    <string name="patient_name">Nom du patient: %1$s</string>
+    <string name="patient_age">Âge: %1$s</string>
+    <string name="patient_address">Adresse: %1$s</string>
+    <string name="patient_contact">Numéro de contact: %1$s</string>
+    <string name="doctor_signature">Signature du médecin</string>
+
+    <!-- Settings Screen -->
+    <string name="settings">Paramètres</string>
+    <string name="light_theme">Thème Clair</string>
+    <string name="notifications">Notifications</string>
+    <string name="delete_account">Supprimer le Compte</string>
+    <string name="language">Langue</string>
+    <string name="english">Anglais</string>
+    <string name="hindi">Hindi</string>
+    <string name="french">Français</string>
 </resources>

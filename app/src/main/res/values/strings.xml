@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MediPal</string>
     <string name="welcome_back_you_ve">Welcome back you\'ve</string>
@@ -7,4 +8,48 @@
     <string name="verify_otp">Verify</string>
     <string name="welcome_to">Welcome to</string>
     <string name="update_profile">Update Profile</string>
+    <string name="edit_number">Edit Number</string>
+    <string name="otp_length_error">OTP should be of 6 digits</string>
+    
+    <!-- Landing Screen -->
+    <string name="get_started">Get Started</string>
+    <string name="next">Next</string>
+    <string name="smart_prescriptions">Smart Prescriptions</string>
+    <string name="smart_prescriptions_desc1">Say goodbye to paper clutter-</string>
+    <string name="smart_prescriptions_desc2">digitize prescriptions for quick</string>
+    <string name="smart_prescriptions_desc3">access</string>
+    <string name="stay_on_track">Stay on Track</string>
+    <string name="stay_on_track_desc1">Get notified about your medications</string>
+    <string name="stay_on_track_desc2">and appointments, ensuring better</string>
+    <string name="stay_on_track_desc3">health management</string>
+    <string name="medical_history">Medical History</string>
+    <string name="medical_history_desc1">Access vital records anytime and</string>
+    <string name="medical_history_desc2">get immediate assistance when</string>
+    <string name="medical_history_desc3">needed.</string>
+    
+    <!-- Prescription Screen -->
+    <string name="my_prescriptions">My Prescriptions</string>
+    <string name="hospital_name">HOSPITAL NAME</string>
+    <string name="address">Address</string>
+    <string name="doctor_prefix">Dr.</string>
+    <string name="specialization">Orthopedic</string>
+    <string name="prescription_number">Prescription no: %1$s</string>
+    <string name="prescription_date">Date: %1$s</string>
+    <string name="medicine_name">Medicine name:</string>
+    <string name="medicine_time">Time</string>
+    <string name="patient_name">Patient name: %1$s</string>
+    <string name="patient_age">Age: %1$s</string>
+    <string name="patient_address">Address: %1$s</string>
+    <string name="patient_contact">Contact number: %1$s</string>
+    <string name="doctor_signature">Dr. Signature</string>
+
+    <!-- Settings Screen -->
+    <string name="settings">Settings</string>
+    <string name="light_theme">Light Theme</string>
+    <string name="notifications">Notifications</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="language">Language</string>
+    <string name="english">English</string>
+    <string name="hindi">Hindi</string>
+    <string name="french">French</string>
 </resources>
