@@ -12,14 +12,15 @@ import com.example.medipal.ui.screens.components.ProfileBar
 @Composable
 fun HomeScreen(
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    name: String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        ProfileBar("Hardik", navController, modifier)
+        ProfileBar(name, navController, modifier)
         Column(
             modifier = modifier.weight(1f)
         ) {

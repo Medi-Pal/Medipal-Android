@@ -9,6 +9,7 @@ enum class Route(val route: String){
     QRCODE("Scanner"),
     NOTIFICATION("Notification"),
     PRESCRIPTION("Prescription"),
+    USER_DETAILS_SCREEN("UserDetails"),
     PROFILE("Profile"),
     EDIT_PROFILE("EditProfile"),
     PRIVACY_POLICY("PrivacyPolicy"),

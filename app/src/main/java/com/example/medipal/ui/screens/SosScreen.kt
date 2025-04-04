@@ -20,7 +20,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.medipal.R
-import com.example.medipal.ui.screens.components.InputLabel
 
 @Composable
 fun SosScreen(
@@ -77,6 +76,11 @@ fun SosScreen(
             Text(text = "Submit")
         }
     }
-
-
+}
+@Composable
+fun InputLabel(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(text = text)
 }

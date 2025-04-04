@@ -6,10 +6,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import com.example.medipal.navigation.Route
+import com.example.medipal.repository.UserRepository
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
@@ -21,6 +24,7 @@ import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 data class LoginUiState(
@@ -28,7 +32,9 @@ data class LoginUiState(
     var authenticationStatus: AuthenticationStatus = AuthenticationStatus.UnAuthenticated,
 )
 
-class AuthViewModel: ViewModel() {
+class AuthViewModel(
+    val userRepository: UserRepository,
+): ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState(
         authenticationStatus = if( isAuthenticated() ) AuthenticationStatus.Authenticated else AuthenticationStatus.UnAuthenticated
     ))
@@ -53,6 +59,12 @@ class AuthViewModel: ViewModel() {
                 if(task.isSuccessful) {
                     Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                     val user = task.result?.user
+                    viewModelScope.launch {
+                        val dbUser = userRepository.getUser()
+                        Log.d("User", dbUser?.name!!)
+                        dbUser?.phoneNumber = user?.phoneNumber.toString()
+                        userRepository.updateUser(dbUser!!)
+                    }
                     _uiState.update {
                         it.copy(
                             phoneNumber = user?.phoneNumber.toString(),
@@ -61,9 +73,6 @@ class AuthViewModel: ViewModel() {
                     }
                     navController.popBackStack(route = Route.LOGIN.route, inclusive = true)
                     navController.navigate(Route.HOME.route)
-                    _uiState.update {
-                        it.copy(authenticationStatus = AuthenticationStatus.Authenticated)
-                    }
                 } else {
                     if(task.exception is FirebaseAuthInvalidCredentialsException) {
                         Toast.makeText(context, "Invalid OTP", Toast.LENGTH_SHORT).show()
@@ -144,7 +153,8 @@ class AuthViewModel: ViewModel() {
     companion object{
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                AuthViewModel()
+                val medipalApp = (this[APPLICATION_KEY] as MedipalApp)
+                AuthViewModel(userRepository = medipalApp.appContainer.userRepository)
             }
         }
     }

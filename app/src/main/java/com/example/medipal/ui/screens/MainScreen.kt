@@ -1,6 +1,5 @@
 package com.example.medipal.ui.screens
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,18 +30,22 @@ import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.AuthViewModel
 import com.example.medipal.ui.AuthenticationStatus
-import com.example.medipal.ui.screens.components.EditProfileScreen
 import com.example.medipal.ui.screens.components.LoginScreen
+import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
 
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory),
+    userDetailsScreenViewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory),
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
     val startDestination = if(authViewModel.isAuthenticated()) Route.HOME.route else Route.LANDING.route
 
+    val name = userDetailsScreenViewModel.uiState.collectAsState().value.name
+
     fun logOut() {
+        userDetailsScreenViewModel.deleteUser()
         authViewModel.signOut(navController)
     }
 
@@ -68,8 +71,13 @@ fun MainScreen(
             composable(Route.OTP.route) {
                 OtpScreen(navController = navController, authViewModel)
             }
+            composable(Route.USER_DETAILS_SCREEN.route) {
+                UserDetailsScreen(onSuccess = {
+                    navController.navigate(Route.LOGIN.route)
+                }, modifier = Modifier.padding(contentPadding))
+            }
             composable(Route.HOME.route) {
-                HomeScreen(navController = navController)
+                HomeScreen(navController = navController, name = name)
             }
             composable(Route.SOS.route){
                 SosScreen(navController = navController, modifier = modifier.padding(contentPadding))
@@ -84,7 +92,7 @@ fun MainScreen(
                 Prescription()
             }
             composable(Route.PROFILE.route) {
-                ProfileScreen(navController, logOut = { logOut() })
+                ProfileScreen(navController, logOut = { logOut() }, name = name)
             }
             composable(Route.EDIT_PROFILE.route) {
                 EditProfileScreen(navController = navController, modifier.padding(contentPadding))

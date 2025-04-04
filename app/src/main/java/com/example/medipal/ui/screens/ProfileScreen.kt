@@ -36,7 +36,8 @@ import com.example.medipal.navigation.Route
 fun ProfileScreen(
     navController: NavController,
     logOut: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    name: String
 ) {
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
@@ -51,7 +52,7 @@ fun ProfileScreen(
             modifier = Modifier.size(80.dp)
         )
         Spacer(modifier = modifier.height(10.dp))
-        Text(text = "Name", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(text = name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(modifier = modifier.height(20.dp))
         ProfileList(navController, logOut)
     }

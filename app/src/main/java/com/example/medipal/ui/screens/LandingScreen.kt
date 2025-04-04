@@ -123,7 +123,7 @@ fun LandingScreen(
             Button(
                 onClick = {
                     if(index == 2){
-                        navController.navigate(Route.LOGIN.route)
+                        navController.navigate(Route.USER_DETAILS_SCREEN.route)
                     }else {
                         index++
                     }
