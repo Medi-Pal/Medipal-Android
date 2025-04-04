@@ -105,17 +105,20 @@ fun MainScreen(
             composable(Route.SETTINGS.route) {
                 SettingsScreen(
                     navController = navController,
-                    languageViewModel = languageViewModel
+                    languageViewModel = languageViewModel,
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
             composable(Route.PRIVACY_POLICY.route) {
                 PrivacyPolicyScreen(
-                    navController = navController
+                    navController = navController,
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
             composable(Route.ARTICLES.route) {
                 ArticlesScreen(
-                    navController = navController
+                    navController = navController,
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
             composable(
@@ -134,7 +137,8 @@ fun MainScreen(
                 
                 ArticleDetailScreen(
                     navController = navController,
-                    article = Article(title, imageRes, content, readTime)
+                    article = Article(title, imageRes, content, readTime),
+                    modifier = modifier.padding(contentPadding)
                 )
             }
             composable(

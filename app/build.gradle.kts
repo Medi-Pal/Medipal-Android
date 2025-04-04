@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.medipal"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.medipal"
@@ -63,6 +63,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    val work_version = "2.10.0"
+    implementation ("androidx.work:work-runtime-ktx:$work_version")
 
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics")

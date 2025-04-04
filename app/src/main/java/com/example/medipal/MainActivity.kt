@@ -3,34 +3,28 @@ package com.example.medipal
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
-import com.example.medipal.navigation.NavGraph
-import com.example.medipal.ui.theme.MedipalTheme
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.dp
+
 import com.example.medipal.ui.screens.MainScreen
+import com.example.medipal.ui.theme.MedipalTheme
 
 class MainActivity : ComponentActivity() {
-    override fun attachBaseContext(newBase: android.content.Context) {
-        val application = newBase.applicationContext as MedipalApplication
-        val languageCode = application.container.languageRepository.getStoredLanguage()
-        super.attachBaseContext(application.container.languageRepository.wrapContext(newBase, languageCode))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             MedipalTheme {
-                Surface(
+                Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainScreen()
+
+                ) { innerPadding ->
+                    MainScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }

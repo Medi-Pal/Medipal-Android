@@ -25,6 +25,7 @@ fun ArticleDetailScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+
             .verticalScroll(rememberScrollState())
     ) {
         ProfileTopBar(navController = navController, text = "Article")

@@ -19,14 +19,16 @@ fun PrivacyPolicyScreen(
     Scaffold(
         topBar = {
             ProfileTopBar(navController = navController, text = "Privacy Policy")
-        }
+        }, modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
-                .padding(bottom = 80.dp)
+                .padding(
+                    horizontal = 16.dp
+                )
+
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
