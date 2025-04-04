@@ -9,12 +9,14 @@ enum class Route(val route: String){
     QRCODE("Scanner"),
     NOTIFICATION("Notification"),
     PRESCRIPTION_LIST("PrescriptionList"),
-    PRESCRIPTION_DETAIL("Prescription/{prescriptionId}"),
+    PRESCRIPTION_DETAIL("PrescriptionDetail/{prescriptionId}"),
     USER_DETAILS_SCREEN("UserDetails"),
     PROFILE("Profile"),
     EDIT_PROFILE("EditProfile"),
     PRIVACY_POLICY("PrivacyPolicy"),
     SETTINGS("Settings"),
     ARTICLES("Articles"),
-    ARTICLE_DETAIL("ArticleDetail?title={title}&imageRes={imageRes}&content={content}&readTime={readTime}")
+    ARTICLE_DETAIL("ArticleDetail?title={title}&imageRes={imageRes}&content={content}&readTime={readTime}"),
+    DOCTORS("Doctors"),
+    DOCTOR_DETAIL("DoctorDetail/{doctorId}")
 }

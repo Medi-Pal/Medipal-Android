@@ -1,5 +1,31 @@
-package com.example.compose
+package com.example.medipal.ui.theme
+
 import androidx.compose.ui.graphics.Color
+
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
+
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)
+
+// Primary brand colors
+val Blue = Color(0xFF0139FE)
+val LightBlue = Color(0xFF0BB9FF)
+
+// Background colors
+val DarkBackground = Color(0xFF1C1B1F)
+val LightBackground = Color(0xFFFFFBFE)
+
+// Text colors
+val DarkText = Color(0xFF1C1B1F)
+val LightText = Color(0xFFFFFBFE)
+
+// Status colors
+val Success = Color(0xFF4CAF50)
+val Error = Color(0xFFE53935)
+val Warning = Color(0xFFFFA000)
 
 val primaryLight = Color(0xFF4B5C92)
 val onPrimaryLight = Color(0xFFFFFFFF)

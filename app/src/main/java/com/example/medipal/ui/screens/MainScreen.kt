@@ -108,6 +108,11 @@ fun MainScreen(
                     languageViewModel = languageViewModel
                 )
             }
+            composable(Route.PRIVACY_POLICY.route) {
+                PrivacyPolicyScreen(
+                    navController = navController
+                )
+            }
             composable(Route.ARTICLES.route) {
                 ArticlesScreen(
                     navController = navController

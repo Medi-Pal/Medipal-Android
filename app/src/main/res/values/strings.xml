@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MediPal</string>
+    
+    <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="articles">Articles</string>
+    <string name="doctors">Doctors</string>
+    <string name="profile">Profile</string>
+    
     <string name="welcome_back_you_ve">Welcome back you\'ve</string>
     <string name="been_missed">been missed!</string>
     <string name="verification_code">Verification code</string>
