@@ -1,13 +1,20 @@
 package com.example.medipal.navigation
 
+import DoctorDetailScreen
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.medipal.ui.screens.*
-import androidx.compose.ui.Modifier
+import com.example.medipal.ui.screens.Article
+import com.example.medipal.ui.screens.ArticleDetailScreen
+import com.example.medipal.ui.screens.ArticlesScreen
+import com.example.medipal.ui.screens.DoctorsScreen
+import com.example.medipal.ui.screens.HomeScreen
+import com.example.medipal.ui.screens.NotificationScreen
+import com.example.medipal.ui.screens.ProfileScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -91,7 +98,8 @@ fun NavGraph(navController: NavHostController) {
         ) { backStackEntry ->
             DoctorDetailScreen(
                 navController = navController,
-                doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
+                doctorId = backStackEntry.arguments?.getString("doctorId") ?: "",
+                modifier = Modifier
             )
         }
 

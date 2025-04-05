@@ -1,5 +1,6 @@
 package com.example.medipal.ui.screens
 
+import DoctorDetailScreen
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,7 +37,6 @@ import com.example.medipal.ui.AuthenticationStatus
 import com.example.medipal.ui.screens.components.LoginScreen
 import com.example.medipal.ui.screens.viewmodels.LanguageViewModel
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
-import java.util.*
 
 @Composable
 fun MainScreen(

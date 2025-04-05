@@ -67,8 +67,8 @@ fun HomeScreen(
     val context = LocalContext.current
 
     val doctors = listOf(
-        Doctor("Dr. Ruben Pinto", "Orthopedic", R.drawable.image_1),
-        Doctor("Dr. Alexy Roman", "Dentist", R.drawable.image_3)
+        Doctor("Dr. Ruben Pinto", "Orthopedic", R.drawable.doctor_icon),
+        Doctor("Dr. Alexy Roman", "Dentist", R.drawable.doctor_icon)
     )
 
     val articles = listOf(
