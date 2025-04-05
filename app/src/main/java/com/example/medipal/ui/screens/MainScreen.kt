@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -196,7 +196,7 @@ fun NavigationBar(
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
             .clip(RoundedCornerShape(25.dp))
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.primaryContainer)
+            .background(color= Color(0xFF2260FF))
     ) {
         listOfIcons.forEachIndexed {index, element->
             NavbarIcon(
@@ -239,7 +239,8 @@ fun NavbarIcon(
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = contentDescription,
-                modifier
+                tint = Color.White,
+                modifier = modifier
             )
         }
     }
