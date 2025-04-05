@@ -1,32 +1,20 @@
 package com.example.medipal.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,6 +25,7 @@ import com.example.medipal.ui.screens.viewmodels.LanguageViewModel
 
 data class Language(val code: String, val nameResId: Int)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
@@ -45,6 +34,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val activity = context as androidx.activity.ComponentActivity
+    var isExpanded by remember { mutableStateOf(false) }
     
     val languages = listOf(
         Language("en", R.string.english),
@@ -63,106 +53,160 @@ fun SettingsScreen(
     val listOfIcons = listOf(R.drawable.light_theme, R.drawable.notification, R.drawable.delete_account, R.drawable.language_icon)
 
     Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
+        modifier = modifier.fillMaxSize()
     ) {
         ProfileTopBar(navController = navController, text = stringResource(R.string.settings))
+        
         Column(
-            modifier = modifier
-                .padding(horizontal = 20.dp)
+            modifier = Modifier
+                .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            TextButton(
-                onClick = {},
-                modifier = Modifier
+            Text(
+                text = "Display",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            )
+            
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                tonalElevation = 1.dp
             ) {
-                Image(
-                    painter = painterResource(listOfIcons[0]),
-                    contentDescription = listOfItems[0],
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = modifier.width(16.dp))
-                Text(
-                    text = listOfItems[0],
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Switch(checked = !isSystemInDarkTheme(), onCheckedChange = {})
+                Column {
+                    ListItem(
+                        headlineContent = { Text(listOfItems[0]) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(listOfIcons[0]),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        trailingContent = {
+                            Switch(checked = !isSystemInDarkTheme(), onCheckedChange = {})
+                        }
+                    )
+                }
             }
-            TextButton(
-                onClick = {},
-                modifier = Modifier
+
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "Preferences",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            )
+            
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                tonalElevation = 1.dp
             ) {
-                Image(
-                    painter = painterResource(id = listOfIcons[1]),
-                    contentDescription = listOfItems[1],
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = modifier.width(16.dp))
-                Text(
-                    text = listOfItems[1],
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Switch(checked = true, onCheckedChange = {})
+                Column {
+                    ListItem(
+                        headlineContent = { Text(listOfItems[1]) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(listOfIcons[1]),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        trailingContent = {
+                            Switch(checked = true, onCheckedChange = {})
+                        }
+                    )
+                    
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                    )
+                    
+                    ListItem(
+                        headlineContent = { Text(listOfItems[3]) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(listOfIcons[3]),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        trailingContent = {
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                        },
+                        modifier = Modifier.clickable { isExpanded = !isExpanded }
+                    )
+                }
             }
-            TextButton(
-                onClick = {},
-                modifier = Modifier
+
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "Danger Zone",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            )
+            
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f),
+                tonalElevation = 1.dp
             ) {
-                Image(
-                    painter = painterResource(id = listOfIcons[2]),
-                    contentDescription = listOfItems[2],
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = modifier.width(16.dp))
-                Text(
-                    text = listOfItems[2],
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
-            }
-            var isExpanded by remember {
-                mutableStateOf(false)
-            }
-            TextButton(
-                onClick = { isExpanded = !isExpanded },
-                modifier = Modifier
-            ) {
-                Image(
-                    painter = painterResource(id = listOfIcons[3]),
-                    contentDescription = listOfItems[3],
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = modifier.width(16.dp))
-                Text(
-                    text = listOfItems[3],
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                DropdownMenu(
-                    expanded = isExpanded,
-                    onDismissRequest = { isExpanded = false },
-                    modifier = Modifier.width(300.dp)
-                ) {
-                    languages.forEach { language ->
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(language.nameResId)) },
-                            onClick = {
-                                languageViewModel.setLocale(language.code)
-                                currentLanguage.value = language.code
-                                isExpanded = false
-                                // Recreate activity to apply language change
-                                activity.finish()
-                                activity.startActivity(activity.intent)
-                                activity.overridePendingTransition(0, 0)
-                            }
+                ListItem(
+                    headlineContent = { 
+                        Text(
+                            text = listOfItems[2],
+                            color = MaterialTheme.colorScheme.error
+                        ) 
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(listOfIcons[2]),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
-                }
+                )
+            }
+        }
+        
+        DropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = { isExpanded = false },
+            modifier = Modifier
+                .width(280.dp)
+                .padding(horizontal = 16.dp)
+        ) {
+            languages.forEach { language ->
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(language.nameResId)) },
+                    onClick = {
+                        languageViewModel.setLocale(language.code)
+                        currentLanguage.value = language.code
+                        isExpanded = false
+                        activity.finish()
+                        activity.startActivity(activity.intent)
+                        activity.overridePendingTransition(0, 0)
+                    }
+                )
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.medipal.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,21 +17,30 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import com.example.medipal.ui.screens.viewmodels.EditProfileViewModel
+import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
 
 data class Doctor(
     val name: String,
@@ -50,8 +60,12 @@ data class Article(
 fun HomeScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    name: String
+    name: String,
+    viewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory)
 ) {
+    val userState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
     val doctors = listOf(
         Doctor("Dr. Ruben Pinto", "Orthopedic", R.drawable.image_1),
         Doctor("Dr. Alexy Roman", "Dentist", R.drawable.image_3)
@@ -157,20 +171,39 @@ fun HomeScreen(
                         fontSize = 16.sp
                     )
                     Text(
-                        text = name,
+                        text = userState.user.name,
                         color = Color.White,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Image(
-                    painter = painterResource(id = R.drawable.profile),
-                    contentDescription = "Profile",
+                
+                Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable { navController.navigate(Route.PROFILE.route) }
-                )
+                ) {
+                    if (userState.user.profileImageUri != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(Uri.parse(userState.user.profileImageUri))
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Profile",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            fallback = painterResource(id = R.drawable.profile)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.profile),
+                            contentDescription = "Profile",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))  // Increased spacing

@@ -1,5 +1,6 @@
 package com.example.medipal.ui.screens
 
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
@@ -21,38 +23,68 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
+import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
     logOut: () -> Unit,
     modifier: Modifier = Modifier,
-    name: String
+    name: String,
+    viewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory)
 ) {
+    val userState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.statusBarsPadding()
     ) {
         ProfileTopBar(navController = navController, text = "My Profile")
-        Image(painter = painterResource(
-            id = R.drawable.profile),
-            contentScale = ContentScale.Fit,
-            contentDescription = "Profile Picture",
-            modifier = Modifier.size(80.dp)
-        )
+        
+        if (userState.user.profileImageUri != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(Uri.parse(userState.user.profileImageUri))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Profile Picture",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+                fallback = painterResource(id = R.drawable.profile)
+            )
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.profile),
+                contentDescription = "Profile Picture",
+                modifier = Modifier.size(80.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+        
         Spacer(modifier = modifier.height(10.dp))
-        Text(text = name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(text = userState.user.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(modifier = modifier.height(20.dp))
         ProfileList(navController, logOut)
     }

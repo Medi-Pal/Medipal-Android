@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
+import com.example.medipal.MainActivity
 import java.util.Locale
 
 class LanguageRepository(private val context: Context) {
@@ -25,9 +26,7 @@ class LanguageRepository(private val context: Context) {
             config.locale = locale
         }
 
-        val updatedContext = context.createConfigurationContext(config)
-        updatedContext.resources.updateConfiguration(config, updatedContext.resources.displayMetrics)
-        return updatedContext
+        return context.createConfigurationContext(config)
     }
 
     fun setLocale(languageCode: String) {
@@ -40,10 +39,8 @@ class LanguageRepository(private val context: Context) {
         // Get the current activity and restart the app
         val activity = getActivity(context)
         activity?.let {
-            val packageManager = context.packageManager
-            val intent = packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val intent = Intent(context, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
             activity.finish()

@@ -25,7 +25,8 @@ import com.example.medipal.R
 @Composable
 fun DoctorDetailScreen(
     navController: NavController,
-    doctorId: String
+    doctorId: String,
+    modifier: Modifier = Modifier
 ) {
     val doctor = when(doctorId) {
         "ruben" -> DoctorDetails(
@@ -50,73 +51,74 @@ fun DoctorDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
+                title = { Text("Doctor Details") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Black
-                        )
+                        Icon(Icons.Filled.ArrowBack, "Back")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                }
             )
         }
-    ) { padding ->
-        if (doctor != null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Doctor's Image
-                Image(
-                    painter = painterResource(id = doctor.imageRes),
-                    contentDescription = "Doctor's photo",
+    ) { innerPadding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            if (doctor != null) {
+                Column(
                     modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Doctor's Name with Verification Badge
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = doctor.name,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Verified",
-                        tint = Color(0xFF0139FE),
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Doctor's Image
+                    Image(
+                        painter = painterResource(id = doctor.imageRes),
+                        contentDescription = "Doctor's photo",
                         modifier = Modifier
-                            .size(20.dp)
-                            .background(Color(0xFF0139FE).copy(alpha = 0.1f), CircleShape)
-                            .padding(2.dp)
+                            .size(120.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Doctor's Name with Verification Badge
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = doctor.name,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Verified",
+                            tint = Color(0xFF0139FE),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .background(Color(0xFF0139FE).copy(alpha = 0.1f), CircleShape)
+                                .padding(2.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    // Doctor's Details
+                    DetailItem("Specialisation", doctor.specialty)
+                    DetailItem("Phone Number", doctor.phoneNumber)
+                    DetailItem("Email", doctor.email)
+                    DetailItem("Work Location", doctor.workLocation)
                 }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Doctor's Details
-                DetailItem("Specialisation", doctor.specialty)
-                DetailItem("Phone Number", doctor.phoneNumber)
-                DetailItem("Email", doctor.email)
-                DetailItem("Work Location", doctor.workLocation)
+            } else {
+                Text("Doctor ID: $doctorId")
             }
         }
     }

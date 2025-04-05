@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +48,8 @@ fun MainScreen(
     val navController = rememberNavController()
     val startDestination = if(authViewModel.isAuthenticated()) Route.HOME.route else Route.LANDING.route
 
-    val name = userDetailsScreenViewModel.uiState.collectAsState().value.name
+    val userState by userDetailsScreenViewModel.uiState.collectAsState()
+    val userName = userState.user.name
 
     fun logOut() {
         userDetailsScreenViewModel.deleteUser()
@@ -62,7 +64,7 @@ fun MainScreen(
         bottomBar = {if(isAuthenticated){
             NavigationBar(navController, modifier)
         }}
-    ) {contentPadding ->
+    ) { contentPadding ->
         NavHost(navController = navController, startDestination = startDestination){
             composable(Route.LANDING.route) {
                 LandingScreen(navController = navController)
@@ -82,7 +84,7 @@ fun MainScreen(
                 }, modifier = Modifier.padding(contentPadding))
             }
             composable(Route.HOME.route) {
-                HomeScreen(navController = navController, name = name)
+                HomeScreen(navController = navController, name = userName)
             }
             composable(Route.SOS.route){
                 SosScreen(navController = navController, modifier = modifier.padding(contentPadding))
@@ -97,7 +99,7 @@ fun MainScreen(
                 PrescriptionListScreen(navController = navController)
             }
             composable(Route.PROFILE.route) {
-                ProfileScreen(navController, logOut = { logOut() }, name = name)
+                ProfileScreen(navController, logOut = { logOut() }, name = userName)
             }
             composable(Route.EDIT_PROFILE.route) {
                 EditProfileScreen(navController = navController, modifier.padding(contentPadding))
@@ -151,6 +153,25 @@ fun MainScreen(
                 PrescriptionScreen(
                     navController = navController,
                     prescriptionId = prescriptionId
+                )
+            }
+            composable(Route.DOCTORS.route) {
+                DoctorsListScreen(
+                    navController = navController,
+                    modifier = Modifier.padding(contentPadding)
+                )
+            }
+            composable(
+                route = Route.DOCTOR_DETAIL.route,
+                arguments = listOf(
+                    navArgument("doctorId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
+                DoctorDetailScreen(
+                    navController = navController,
+                    doctorId = doctorId,
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
         }

@@ -17,6 +17,6 @@ enum class Route(val route: String){
     SETTINGS("Settings"),
     ARTICLES("Articles"),
     ARTICLE_DETAIL("ArticleDetail?title={title}&imageRes={imageRes}&content={content}&readTime={readTime}"),
-    DOCTORS("Doctors"),
-    DOCTOR_DETAIL("DoctorDetail/{doctorId}")
+    DOCTORS("DoctorsList"),
+    DOCTOR_DETAIL("DoctorDetail?doctorId={doctorId}")
 }

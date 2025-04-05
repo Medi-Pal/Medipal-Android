@@ -8,5 +8,6 @@ data class User(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     var phoneNumber: String,
-    val email: String
+    val email: String,
+    var profileImageUri: String? = null
 )
