@@ -2,6 +2,7 @@ package com.example.medipal.di
 
 import android.content.Context
 import com.example.medipal.data.AppDatabase
+import com.example.medipal.data.dao.EmergencyContactDao
 import com.example.medipal.repository.UserRepository
 import com.example.medipal.repository.LanguageRepository
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
@@ -18,8 +19,11 @@ class AppContainer(private val context: Context) : AppContainerInterface {
         AppDatabase.getInstance(context)
     }
 
+    private val userDao = database.userDao()
+    private val emergencyContactDao = database.emergencyContactDao()
+
     override val userRepository: UserRepository by lazy {
-        UserRepository(database.userDao())
+        UserRepository(userDao)
     }
 
     override val languageRepository: LanguageRepository by lazy {
@@ -29,4 +33,6 @@ class AppContainer(private val context: Context) : AppContainerInterface {
     override val userDetailsViewModel: UserDetailsScreenViewModel by lazy {
         UserDetailsScreenViewModel.getInstance(userRepository)
     }
+
+    fun getEmergencyContactDao(): EmergencyContactDao = emergencyContactDao
 }

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.medipal.R
+import com.example.medipal.navigation.Route
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +56,7 @@ fun DoctorsListScreen(
                 DoctorCard(
                     doctor = doctors[index],
                     onDoctorClick = { doctorId ->
-                        navController.navigate("DoctorDetail?doctorId=${doctorId}")
+                        navController.navigate(Route.DOCTOR_DETAIL.route.replace("{doctorId}", doctorId))
                     }
                 )
             }

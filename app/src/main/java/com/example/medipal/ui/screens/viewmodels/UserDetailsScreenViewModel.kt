@@ -37,6 +37,24 @@ class UserDetailsScreenViewModel(
         loadUser()
     }
 
+    // Forces a UI refresh by creating a new user instance with the same data
+    fun forceRefresh() {
+        viewModelScope.launch {
+            _uiState.update { currentState -> 
+                // Create new User object with same data to force recomposition
+                val currentUser = currentState.user
+                val refreshedUser = currentUser.copy(
+                    id = currentUser.id,
+                    name = currentUser.name,
+                    phoneNumber = currentUser.phoneNumber,
+                    email = currentUser.email,
+                    profileImageUri = currentUser.profileImageUri
+                )
+                currentState.copy(user = refreshedUser)
+            }
+        }
+    }
+
     private fun loadUser() {
         viewModelScope.launch {
             val user = userRepository.getUser()
@@ -137,6 +155,23 @@ class UserDetailsScreenViewModel(
         viewModelScope.launch {
             userRepository.deleteUsers()
             _uiState.update { UserDetailsUiState() }
+        }
+    }
+
+    fun updateUserData(user: User) {
+        viewModelScope.launch {
+            try {
+                // Update user in database
+                userRepository.insertOrUpdateUser(user)
+                // Update UI state
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        user = user
+                    )
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
         }
     }
 

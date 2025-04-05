@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun Notification(
+fun EmergencyNotification(
     modifier: Modifier = Modifier
 ) {
     Column(

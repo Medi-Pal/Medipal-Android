@@ -15,6 +15,7 @@ import com.example.medipal.MedipalApplication
 import com.example.medipal.data.User
 import com.example.medipal.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,28 +48,39 @@ class EditProfileViewModel(
     val imageSaveState: StateFlow<ImageSaveState> = _imageSaveState.asStateFlow()
 
     init {
-        loadUser()
-        loadProfileImage()
-    }
-
-    private fun loadUser() {
         viewModelScope.launch {
-            _user.value = userRepository.getUser() ?: User(0, "", "", "")
-            // Load profile image from user data if available
-            _user.value.profileImageUri?.let {
-                _profileImageUri.value = it.toUri()
+            // First load user data from the database
+            val userData = userRepository.getUser()
+            
+            if (userData != null) {
+                // Update the user state with database values
+                _user.value = userData
+                
+                // Load profile image if it exists in user data
+                userData.profileImageUri?.let {
+                    _profileImageUri.value = it.toUri()
+                }
             }
+            
+            // Also check shared preferences for any profile image path
+            loadProfileImage()
         }
     }
 
     private fun loadProfileImage() {
         val sharedPrefs = application.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
         val savedImagePath = sharedPrefs.getString("profile_image_path", null)
-        savedImagePath?.let {
-            _profileImageUri.value = it.toUri()
-            // Update user with profile image
-            _user.update { user ->
-                user.copy(profileImageUri = it)
+        savedImagePath?.let { imagePath ->
+            _profileImageUri.value = imagePath.toUri()
+            
+            // Only update the user profile image URI, preserving other fields
+            _user.update { existingUser ->
+                // Don't override other user data, just update the profile image if it's not set
+                if (existingUser.profileImageUri == null) {
+                    existingUser.copy(profileImageUri = imagePath)
+                } else {
+                    existingUser
+                }
             }
         }
     }
@@ -116,15 +128,23 @@ class EditProfileViewModel(
 
                     // Update the states
                     _profileImageUri.value = fileUri
-                    _user.update { it.copy(profileImageUri = uriString) }
+                    _user.update { existingUser -> 
+                        // Ensure we preserve all user data when updating the profile image URI
+                        existingUser.copy(profileImageUri = uriString)
+                    }
                     
                     // Save to database first
                     userRepository.insertOrUpdateUser(_user.value)
                     
                     // Update UserDetailsViewModel and trigger reload
                     withContext(Dispatchers.Main) {
+                        // Update the shared UserDetailsViewModel
                         userDetailsViewModel.updateProfileImage(fileUri)
+                        // Reload data in UserDetailsViewModel 
                         userDetailsViewModel.reloadUser()
+                        // Also force UI refresh to ensure image is updated in all views
+                        kotlinx.coroutines.delay(100)
+                        userDetailsViewModel.forceRefresh()
                     }
                     
                     _imageSaveState.value = ImageSaveState.Success(fileUri)
@@ -160,6 +180,12 @@ class EditProfileViewModel(
         )}
     }
 
+    fun editPhoneNumber(phoneNumber: String) {
+        _user.update { it.copy(
+            phoneNumber = phoneNumber
+        )}
+    }
+
     fun editEmail(email: String) {
         _user.update { it.copy(
             email = email
@@ -169,8 +195,19 @@ class EditProfileViewModel(
     fun updateUser() {
         viewModelScope.launch {
             try {
+                // Save user data to database
                 userRepository.insertOrUpdateUser(user.value)
-                _user.value = user.value
+                
+                // Also update the UserDetailsViewModel to ensure data consistency
+                withContext(Dispatchers.Main) {
+                    // Update the shared UserDetailsViewModel with the new user data
+                    userDetailsViewModel.updateUserData(user.value)
+                    // Also reload to ensure data is fresh
+                    userDetailsViewModel.reloadUser()
+                    // Force refresh UI
+                    delay(100)
+                    userDetailsViewModel.forceRefresh()
+                }
                 
                 // Show success toast
                 withContext(Dispatchers.Main) {

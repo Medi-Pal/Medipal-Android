@@ -65,6 +65,8 @@ fun ProfileBar(
                             model = ImageRequest.Builder(context)
                                 .data(Uri.parse(userState.user.profileImageUri))
                                 .crossfade(true)
+                                .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
+                                .diskCachePolicy(coil3.request.CachePolicy.DISABLED)
                                 .build(),
                             contentDescription = "Profile image",
                             modifier = modifier

@@ -102,6 +102,8 @@ fun EditProfileScreen(
                             model = ImageRequest.Builder(context)
                                 .data(profileImageUri)
                                 .crossfade(true)
+                                .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
+                                .diskCachePolicy(coil3.request.CachePolicy.DISABLED)
                                 .build(),
                             contentDescription = "Profile Picture",
                             modifier = Modifier
@@ -152,7 +154,14 @@ fun EditProfileScreen(
         }
 
         InputField(label = "Full Name", value = user.name, onValueChange = viewModel::editUserName)
-        InputField(label = "Phone Number", value = user.phoneNumber, onValueChange={}, keyboardType = KeyboardType.Phone)
+        InputField(
+            label = "Phone Number", 
+            value = user.phoneNumber, 
+            onValueChange = { phone -> 
+                viewModel.editPhoneNumber(phone) 
+            },
+            keyboardType = KeyboardType.Phone
+        )
         InputField(label = "Email", value = user.email, onValueChange = viewModel::editEmail, keyboardType = KeyboardType.Email)
 
         Button(

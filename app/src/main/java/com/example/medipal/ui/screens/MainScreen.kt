@@ -93,7 +93,7 @@ fun MainScreen(
                 QrScanner()
             }
             composable(Route.NOTIFICATION.route){
-                Notification()
+                NotificationScreen(modifier = modifier.padding(contentPadding))
             }
             composable(Route.PRESCRIPTION_LIST.route) {
                 PrescriptionListScreen(navController = navController)
@@ -164,7 +164,10 @@ fun MainScreen(
             composable(
                 route = Route.DOCTOR_DETAIL.route,
                 arguments = listOf(
-                    navArgument("doctorId") { type = NavType.StringType }
+                    navArgument("doctorId") { 
+                        type = NavType.StringType
+                        nullable = false 
+                    }
                 )
             ) { backStackEntry ->
                 val doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""

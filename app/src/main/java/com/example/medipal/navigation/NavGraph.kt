@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.medipal.ui.screens.*
+import androidx.compose.ui.Modifier
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -92,6 +93,10 @@ fun NavGraph(navController: NavHostController) {
                 navController = navController,
                 doctorId = backStackEntry.arguments?.getString("doctorId") ?: ""
             )
+        }
+
+        composable(Route.NOTIFICATION.route) {
+            NotificationScreen(modifier = Modifier)
         }
 
         // Add other routes as needed
