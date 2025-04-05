@@ -55,7 +55,7 @@ import java.time.LocalDate
 fun DoctorDetailScreen(
     navController: NavController,
     doctorId: String?,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     var showBookingDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }

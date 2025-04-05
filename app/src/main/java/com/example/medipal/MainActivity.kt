@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MedipalTheme {
+            MedipalTheme{
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                 ) { innerPadding ->

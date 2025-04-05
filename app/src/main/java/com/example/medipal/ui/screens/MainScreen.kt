@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -196,7 +197,7 @@ fun NavigationBar(
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
             .clip(RoundedCornerShape(25.dp))
             .fillMaxWidth()
-            .background(color= Color(0xFF2260FF))
+            .background(color= MaterialTheme.colorScheme.primary)
     ) {
         listOfIcons.forEachIndexed {index, element->
             NavbarIcon(
