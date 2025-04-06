@@ -1,7 +1,14 @@
 package com.example.medipal.ui.screens
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.telephony.SmsManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,11 +61,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.medipal.MedipalApplication
 import com.example.medipal.data.model.Notification
 import com.example.medipal.data.model.NotificationType
 import com.example.medipal.ui.screens.viewmodels.EmergencyContactViewModel
+import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -80,12 +89,70 @@ fun NotificationScreen(
         )
     } else null
     
+    // Get user information for SMS
+    val userViewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory)
+    val userState by userViewModel.uiState.collectAsState()
+    val userName = userState.user.name
+    
     val emergencyContacts by emergencyContactViewModel?.contacts?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
     
     var notifications by remember { mutableStateOf(generateSampleNotifications()) }
     var isRefreshing by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    
+    // Permission launcher for SMS
+    val smsPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, will handle SMS in the button click
+        } else {
+            // Permission denied
+            Toast.makeText(context, "SMS permission is required to send emergency alerts", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    // Function to send SMS
+    fun sendEmergencySMS(phoneNumber: String, contactName: String) {
+        try {
+            val message = "EMERGENCY ALERT: $userName is trying to reach you for emergency assistance."
+            val smsManager = SmsManager.getDefault()
+            smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+            scope.launch {
+                snackbarHostState.showSnackbar("Emergency SMS sent to $contactName")
+            }
+        } catch (e: Exception) {
+            scope.launch {
+                snackbarHostState.showSnackbar("Failed to send SMS: ${e.message}")
+            }
+        }
+    }
+    
+    // Function to handle emergency call with SMS
+    fun handleEmergencyCall(phoneNumber: String, contactName: String) {
+        // First check if we have SMS permission
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) 
+            == PackageManager.PERMISSION_GRANTED) {
+            // Send SMS before initiating call
+            sendEmergencySMS(phoneNumber, contactName)
+            
+            // Initiate phone call
+            val intent = Intent(Intent.ACTION_DIAL).apply {
+                data = Uri.parse("tel:$phoneNumber")
+            }
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar("No app found to handle phone calls")
+                }
+            }
+        } else {
+            // Request SMS permission
+            smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -137,9 +204,17 @@ fun NotificationScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Emergency Call",
+                        text = "Emergency Call & SMS",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Your emergency contacts will be notified with an SMS when you call",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -156,6 +231,7 @@ fun NotificationScreen(
                         // Default Emergency Numbers
                         Button(
                             onClick = {
+                                // For 911, we don't send SMS
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
                                     data = Uri.parse("tel:911")
                                 }
@@ -175,6 +251,88 @@ fun NotificationScreen(
                             Text("Call Emergency Services (911)")
                         }
                     } else {
+                        // Call for Help Button (Send SMS to all contacts)
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFDCDB)),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(2.dp, Color(0xFF9C0006))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Emergency Alert",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF9C0006)
+                                )
+                                
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                Text(
+                                    text = "This will send an emergency SMS to all your contacts",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                Button(
+                                    onClick = {
+                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) 
+                                            == PackageManager.PERMISSION_GRANTED) {
+                                            
+                                            // Send SMS to all emergency contacts
+                                            emergencyContacts.forEach { contact ->
+                                                sendEmergencySMS(contact.phoneNumber, contact.name)
+                                            }
+                                            
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar("Emergency alerts sent to all contacts!")
+                                            }
+                                        } else {
+                                            // Request SMS permission
+                                            smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFD32F2F)
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Call,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "CALL FOR HELP",
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Individual Emergency Contact Buttons
+                        Text(
+                            text = "Or call individual contacts:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        
                         // Emergency Contact Buttons
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -183,23 +341,14 @@ fun NotificationScreen(
                             emergencyContacts.take(3).forEach { contact ->
                                 Button(
                                     onClick = {
-                                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                                            data = Uri.parse("tel:${contact.phoneNumber}")
-                                        }
-                                        if (intent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(intent)
-                                        } else {
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar("No app found to handle phone calls")
-                                            }
-                                        }
+                                        handleEmergencyCall(contact.phoneNumber, contact.name)
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFFE53935)
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Call ${contact.name} (${contact.phoneNumber})")
+                                    Text("Call & Alert ${contact.name} (${contact.phoneNumber})")
                                 }
                             }
                         }

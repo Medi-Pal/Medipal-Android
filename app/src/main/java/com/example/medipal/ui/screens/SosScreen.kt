@@ -230,7 +230,7 @@ private fun isValidPhoneNumber(phoneNumber: String): Boolean {
     // Simple validation: at least 10 digits, allowing +, spaces, and dashes
     val digitsOnly = phoneNumber.filter { it.isDigit() }
     val validFormat = phoneNumber.all { it.isDigit() || it == '+' || it == ' ' || it == '-' }
-    return digitsOnly.length == 10 && validFormat
+    return digitsOnly.length == 12 && validFormat
 }
 
 @Composable

@@ -2,7 +2,9 @@ package com.example.medipal.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
@@ -120,6 +122,19 @@ class PrescriptionAlarmWorker(
 
     private fun showNotification(title: String, message: String) {
         try {
+            // Create a pending intent for the SOS action
+            val sosIntent = Intent(context, SOSMedicationReceiver::class.java).apply {
+                action = SOSMedicationReceiver.ACTION_MEDICATION_SOS
+                putExtra("medication_name", title.substringAfter("Medicine Reminder").trim())
+            }
+            val sosPendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                sosIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Create notification with SOS action
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.prescription)
                 .setContentTitle(title)
@@ -128,6 +143,11 @@ class PrescriptionAlarmWorker(
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setAutoCancel(true)
                 .setVibrate(longArrayOf(0, 500, 250, 500))
+                .addAction(
+                    R.drawable.sos_red, // SOS icon
+                    "Need Help Taking Medication",
+                    sosPendingIntent
+                )
                 .build()
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
