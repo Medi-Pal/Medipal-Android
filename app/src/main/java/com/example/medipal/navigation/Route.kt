@@ -15,6 +15,7 @@ enum class Route(val route: String){
     EDIT_PROFILE("EditProfile"),
     PRIVACY_POLICY("PrivacyPolicy"),
     SETTINGS("Settings"),
+    MEDICATION_SETTINGS("MedicationSettings"),
     ARTICLES("Articles"),
     ARTICLE_DETAIL("ArticleDetail?title={title}&imageRes={imageRes}&content={content}&readTime={readTime}"),
     DOCTORS("DoctorsList"),

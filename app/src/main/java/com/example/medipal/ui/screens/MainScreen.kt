@@ -38,6 +38,7 @@ import com.example.medipal.ui.AuthenticationStatus
 import com.example.medipal.ui.screens.components.LoginScreen
 import com.example.medipal.ui.screens.viewmodels.LanguageViewModel
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
+import com.example.medipal.ui.screens.settings.MedicationSettingsScreen
 
 @Composable
 fun MainScreen(
@@ -109,6 +110,12 @@ fun MainScreen(
                 SettingsScreen(
                     navController = navController,
                     languageViewModel = languageViewModel,
+                    modifier = Modifier.padding(contentPadding)
+                )
+            }
+            composable(Route.MEDICATION_SETTINGS.route) {
+                MedicationSettingsScreen(
+                    navController = navController,
                     modifier = Modifier.padding(contentPadding)
                 )
             }

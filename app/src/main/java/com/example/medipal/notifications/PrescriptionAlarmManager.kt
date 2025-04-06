@@ -6,6 +6,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.example.medipal.settings.MedicationTimePreferences
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -15,19 +16,6 @@ import java.util.concurrent.TimeUnit
 class PrescriptionAlarmManager(private val context: Context) {
     
     companion object {
-        // Time constants for medicine reminders
-        private const val MORNING_HOUR = 8
-        private const val MORNING_MINUTE = 30
-        
-        private const val AFTERNOON_HOUR = 13
-        private const val AFTERNOON_MINUTE = 30
-        
-        private const val EVENING_HOUR = 17
-        private const val EVENING_MINUTE = 0
-        
-        private const val NIGHT_HOUR = 20
-        private const val NIGHT_MINUTE = 30
-        
         // Unique work tags
         private const val MORNING_TAG = "medicine_morning"
         private const val AFTERNOON_TAG = "medicine_afternoon"
@@ -36,6 +24,7 @@ class PrescriptionAlarmManager(private val context: Context) {
     }
     
     private val preferenceManager = NotificationPreferenceManager(context)
+    private val timePreferences = MedicationTimePreferences(context)
     
     /**
      * Toggle notifications for a prescription
@@ -121,14 +110,15 @@ class PrescriptionAlarmManager(private val context: Context) {
     ) {
         val title = "Morning Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
+        val (hour, minute) = timePreferences.getMorningTime()
         scheduleReminderAtTime(
             prescriptionId, 
             medicineName, 
             dosage, 
             title, 
             message, 
-            MORNING_HOUR, 
-            MORNING_MINUTE, 
+            hour, 
+            minute, 
             MORNING_TAG
         )
     }
@@ -143,14 +133,15 @@ class PrescriptionAlarmManager(private val context: Context) {
     ) {
         val title = "Afternoon Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
+        val (hour, minute) = timePreferences.getAfternoonTime()
         scheduleReminderAtTime(
             prescriptionId, 
             medicineName, 
             dosage, 
             title, 
             message, 
-            AFTERNOON_HOUR, 
-            AFTERNOON_MINUTE, 
+            hour, 
+            minute, 
             AFTERNOON_TAG
         )
     }
@@ -165,14 +156,15 @@ class PrescriptionAlarmManager(private val context: Context) {
     ) {
         val title = "Evening Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
+        val (hour, minute) = timePreferences.getEveningTime()
         scheduleReminderAtTime(
             prescriptionId, 
             medicineName, 
             dosage, 
             title, 
             message, 
-            EVENING_HOUR, 
-            EVENING_MINUTE, 
+            hour, 
+            minute, 
             EVENING_TAG
         )
     }
@@ -187,14 +179,15 @@ class PrescriptionAlarmManager(private val context: Context) {
     ) {
         val title = "Night Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
+        val (hour, minute) = timePreferences.getNightTime()
         scheduleReminderAtTime(
             prescriptionId, 
             medicineName, 
             dosage, 
             title, 
             message, 
-            NIGHT_HOUR, 
-            NIGHT_MINUTE, 
+            hour, 
+            minute, 
             NIGHT_TAG
         )
     }
@@ -238,9 +231,12 @@ class PrescriptionAlarmManager(private val context: Context) {
             .setInputData(inputData)
             .build()
         
+        // Use a unique tag for each prescription
+        val prescriptionUniqueTag = "$prescriptionId-$uniqueTag"
+        
         WorkManager.getInstance(context)
             .enqueueUniqueWork(
-                uniqueTag,
+                prescriptionUniqueTag,
                 ExistingWorkPolicy.REPLACE,
                 workRequest
             )

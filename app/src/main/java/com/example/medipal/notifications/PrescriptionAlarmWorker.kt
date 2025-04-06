@@ -11,6 +11,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import androidx.work.OneTimeWorkRequestBuilder
 import com.example.medipal.R
+import com.example.medipal.settings.MedicationTimePreferences
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -27,9 +28,54 @@ class PrescriptionAlarmWorker(
         private fun getNextNotificationId(): Int {
             return NOTIFICATION_ID++
         }
+        
+        // Method to test if notifications work
+        fun testNotification(context: Context): Boolean {
+            try {
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                
+                // Create a test notification channel if needed
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val channel = NotificationChannel(
+                        "test_channel",
+                        "Test Notifications", 
+                        NotificationManager.IMPORTANCE_HIGH
+                    ).apply {
+                        description = "Channel for testing notifications"
+                        enableVibration(true)
+                        vibrationPattern = longArrayOf(0, 500, 250, 500)
+                        enableLights(true)
+                        setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, null)
+                    }
+                    notificationManager.createNotificationChannel(channel)
+                }
+                
+                // Create and show a test notification
+                val notification = NotificationCompat.Builder(context, "test_channel")
+                    .setSmallIcon(R.drawable.prescription)
+                    .setContentTitle("Test Notification")
+                    .setContentText("If you can see this, notifications are working!")
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                    .setVibrate(longArrayOf(0, 500, 250, 500))
+                    .setAutoCancel(true)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL)
+                    .build()
+                
+                notificationManager.notify(1000, notification)
+                
+                // Log success for debugging
+                android.util.Log.d("NotificationTest", "Test notification sent successfully")
+                return true
+            } catch (e: Exception) {
+                android.util.Log.e("NotificationTest", "Failed to show test notification", e)
+                return false
+            }
+        }
     }
 
     private val preferenceManager = NotificationPreferenceManager(context)
+    private val timePreferences = MedicationTimePreferences(context)
 
     override suspend fun doWork(): Result {
         val title = inputData.getString("title") ?: "Medicine Reminder"
@@ -73,18 +119,30 @@ class PrescriptionAlarmWorker(
     }
 
     private fun showNotification(title: String, message: String) {
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.prescription)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setAutoCancel(true)
-            .setVibrate(longArrayOf(0, 500, 250, 500))
-            .build()
+        try {
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.prescription)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                .setAutoCancel(true)
+                .setVibrate(longArrayOf(0, 500, 250, 500))
+                .build()
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(getNextNotificationId(), notification)
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            
+            // Ensure channel is created before showing notification
+            createNotificationChannel()
+            
+            val notificationId = getNextNotificationId()
+            notificationManager.notify(notificationId, notification)
+            
+            // Log notification for debugging
+            android.util.Log.d("PrescriptionAlarmWorker", "Showing notification: ID=$notificationId, Title=$title")
+        } catch (e: Exception) {
+            android.util.Log.e("PrescriptionAlarmWorker", "Error showing notification", e)
+        }
     }
 
     // Schedule the same reminder for the next day
@@ -113,21 +171,13 @@ class PrescriptionAlarmWorker(
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, 1) // Add one day
 
-        // Set the same time as today's reminder
-        val hour = when (reminderTag) {
-            "medicine_morning" -> 8
-            "medicine_afternoon" -> 13
-            "medicine_evening" -> 17
-            "medicine_night" -> 20
-            else -> calendar.get(Calendar.HOUR_OF_DAY)
-        }
-        
-        val minute = when (reminderTag) {
-            "medicine_morning" -> 30
-            "medicine_afternoon" -> 30
-            "medicine_evening" -> 0
-            "medicine_night" -> 30
-            else -> calendar.get(Calendar.MINUTE)
+        // Set the time based on the reminder type and user preferences
+        val (hour, minute) = when (reminderTag) {
+            "medicine_morning" -> timePreferences.getMorningTime()
+            "medicine_afternoon" -> timePreferences.getAfternoonTime()
+            "medicine_evening" -> timePreferences.getEveningTime()
+            "medicine_night" -> timePreferences.getNightTime()
+            else -> Pair(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE))
         }
 
         calendar.set(Calendar.HOUR_OF_DAY, hour)

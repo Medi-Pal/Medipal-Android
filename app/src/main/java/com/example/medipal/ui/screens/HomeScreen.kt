@@ -45,6 +45,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -74,6 +75,7 @@ import com.example.medipal.R
 import com.example.medipal.data.model.PrescriptionMedicine
 import com.example.medipal.navigation.Route
 import com.example.medipal.notifications.PrescriptionAlarmManager
+import com.example.medipal.notifications.PrescriptionAlarmWorker
 import com.example.medipal.ui.screens.viewmodels.RecentPrescriptionViewModel
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
 import com.example.medipal.utils.DateUtils
@@ -262,7 +264,7 @@ fun HomeScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(240.dp), // Increased height to accommodate reminder button
+                        .height(280.dp), // Increased height from 240dp to 280dp
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(
@@ -428,9 +430,10 @@ fun HomeScreen(
                                                         coroutineScope.launch {
                                                             snackbarHostState.showSnackbar(
                                                                 message = if (notificationsEnabled) 
-                                                                    "Reminders enabled for ${prescription.id}" 
+                                                                    "Reminders set for $medicineName" 
                                                                 else 
-                                                                    "Reminders disabled for ${prescription.id}"
+                                                                    "Reminders disabled for $medicineName",
+                                                                actionLabel = "Test"
                                                             )
                                                         }
                                                     }

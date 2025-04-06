@@ -238,7 +238,7 @@ fun PrescriptionListItem(
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = "Prescription Id: ${prescription.id}",
+                    text = "Diagnosis: ${prescription.diagnosis}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )
