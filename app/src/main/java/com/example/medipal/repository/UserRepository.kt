@@ -24,4 +24,24 @@ class UserRepository(private val userDao: UserDao) {
     suspend fun getUser(): User? {
         return userDao.getUser()
     }
+
+    /**
+     * Check the database for integrity issues and handle them
+     * This is to help identify and fix any database corruption
+     */
+    suspend fun verifyDatabaseIntegrity(): Boolean {
+        return try {
+            // Try to access the database, which will throw an exception if corrupt
+            val user = userDao.getUser()
+            true
+        } catch (e: Exception) {
+            // If there's a database error, clear all users and return false
+            try {
+                userDao.deleteUsers()
+            } catch (e2: Exception) {
+                // If even deletion fails, we have a serious database problem
+            }
+            false
+        }
+    }
 }

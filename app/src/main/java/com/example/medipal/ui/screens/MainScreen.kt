@@ -91,7 +91,7 @@ fun MainScreen(
                 SosScreen(navController = navController, modifier = modifier.padding(contentPadding))
             }
             composable(Route.QRCODE.route){
-                QrScanner()
+                QrScanner(navController = navController)
             }
             composable(Route.NOTIFICATION.route){
                 NotificationScreen(modifier = modifier.padding(contentPadding))

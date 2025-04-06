@@ -21,8 +21,9 @@ import androidx.navigation.NavController
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.screens.viewmodels.PrescriptionListViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import com.example.medipal.utils.DateUtils
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,7 +243,7 @@ fun PrescriptionListItem(
                     color = Color.White
                 )
                 Text(
-                    text = "Date: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(prescription.createdOn)}",
+                    text = "Date: ${DateUtils.formatISODateToReadable(prescription.createdOn)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White
                 )

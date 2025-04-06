@@ -4,19 +4,23 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,19 +30,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,16 +68,16 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.medipal.R
+import com.example.medipal.data.model.PrescriptionMedicine
 import com.example.medipal.navigation.Route
+import com.example.medipal.notifications.PrescriptionAlarmManager
+import com.example.medipal.ui.screens.viewmodels.RecentPrescriptionViewModel
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.medipal.utils.DateUtils
+import kotlinx.coroutines.launch
 
 data class Doctor(
     val name: String,
@@ -84,11 +98,15 @@ fun HomeScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     name: String,
-    viewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory)
+    viewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory),
+    recentPrescriptionViewModel: RecentPrescriptionViewModel = viewModel(factory = RecentPrescriptionViewModel.factory)
 ) {
     val userState by viewModel.uiState.collectAsState()
+    val recentPrescriptionState by recentPrescriptionViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val isDarkTheme = isSystemInDarkTheme()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     val doctors = listOf(
         Doctor("Dr. Ruben Pinto", "Orthopedic", R.drawable.doctor_icon),
@@ -149,198 +167,368 @@ fun HomeScreen(
         )
     )
 
-    Box(modifier = modifier.fillMaxSize()) {
-        // Background layout
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Vector background for top portion
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.4f)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.vector_2),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-            // Bottom portion using theme background color
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(MaterialTheme.colorScheme.background)
-            )
-        }
-
-        // Content layout with proper insets handling
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 80.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Top Section with Greeting and Profile
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "How you doing",
-                        color = Color.White,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = userState.user.name,
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        modifier = modifier.fillMaxSize()
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            // Background layout
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Vector background for top portion
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable { navController.navigate(Route.PROFILE.route) }
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.4f)
                 ) {
-                    if (userState.user.profileImageUri != null) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
-                                .data(Uri.parse(userState.user.profileImageUri))
-                                .memoryCachePolicy(CachePolicy.DISABLED)
-                                .diskCachePolicy(CachePolicy.DISABLED)
-                                .build(),
-                            contentDescription = "Profile",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            fallback = painterResource(id = R.drawable.profile)
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.profile),
-                            contentDescription = "Profile",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.vector_2),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))  // Increased spacing
-
-            // Prescription Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clickable { 
-                        navController.navigate(Route.PRESCRIPTION_DETAIL.route.replace("{prescriptionId}", "1"))
-                    },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
+                // Bottom portion using theme background color
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .background(MaterialTheme.colorScheme.background)
+                )
+            }
+
+            // Content layout with proper insets handling
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 80.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Top Section with Greeting and Profile
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
                         Text(
-                            text = "Recent Prescription",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Dr. Ruben Pinto - 3/03/24",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "How you doing",
+                            color = Color.White,
+                            fontSize = 16.sp
                         )
                         Text(
-                            text = "Orthopedic",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "+123 567 89000",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = userState.user.name,
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                    
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable { navController.navigate(Route.PROFILE.route) }
+                    ) {
+                        if (userState.user.profileImageUri != null) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(Uri.parse(userState.user.profileImageUri))
+                                    .memoryCachePolicy(CachePolicy.DISABLED)
+                                    .diskCachePolicy(CachePolicy.DISABLED)
+                                    .build(),
+                                contentDescription = "Profile",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                fallback = painterResource(id = R.drawable.profile)
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.profile),
+                                contentDescription = "Profile",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))  // Increased spacing
 
-            // Doctors Section
-            Text(
-                text = "Let's find the doctor",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            
-            doctors.forEach { doctor ->
+                // Recent Prescription Card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(vertical = 4.dp)
-                        .clickable {
-                            val doctorId = when(doctor.name) {
-                                "Dr. Ruben Pinto" -> "ruben"
-                                "Dr. Alexy Roman" -> "alexy"
-                                else -> ""
-                            }
-                            navController.navigate("DoctorDetail/$doctorId")
-                        },
+                        .height(240.dp), // Increased height to accommodate reminder button
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(16.dp)
                     ) {
-                        Image(
-                            painter = painterResource(id = doctor.imageRes),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = doctor.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = doctor.specialty,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        when {
+                            recentPrescriptionState.isLoading -> {
+                                // Show loading state
+                                CircularProgressIndicator(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            recentPrescriptionState.error != null -> {
+                                // Show error state
+                                Column(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "No prescriptions",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.error,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Button(
+                                        onClick = { 
+                                            navController.navigate(Route.QRCODE.route)
+                                        },
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    ) {
+                                        Text("Scan Prescription")
+                                    }
+                                }
+                            }
+                            recentPrescriptionState.recentPrescription != null -> {
+                                // Show recent prescription
+                                val prescription = recentPrescriptionState.recentPrescription
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Recent Prescription",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowForward,
+                                            contentDescription = "View",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        Route.PRESCRIPTION_DETAIL.route.replace(
+                                                            "{prescriptionId}",
+                                                            prescription?.id ?: ""
+                                                        )
+                                                    )
+                                                }
+                                        )
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    
+                                    // Doctor information
+                                    Text(
+                                        text = "Dr. ${prescription?.doctor?.name} - ${DateUtils.formatISODateToReadable(prescription?.createdOn ?: "")}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = prescription?.doctor?.specialisation ?: "",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "+${prescription?.doctor?.contactNumber}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    
+                                    // Diagnosis or medicines
+                                    if (!prescription?.diagnosis.isNullOrBlank()) {
+                                        Text(
+                                            text = "Diagnosis: ${prescription?.diagnosis}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    } else if (prescription?.medicineList?.isNotEmpty() == true) {
+                                        val medicineCount = prescription.medicineList?.size ?: 0
+                                        Text(
+                                            text = "Medicines: $medicineCount items",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    
+                                    // Notification Setup with Toggle Switch
+                                    prescription?.medicineList?.takeIf { it.isNotEmpty() }?.let { medicineList ->
+                                        val alarmManager = PrescriptionAlarmManager(context)
+                                        var notificationsEnabled by remember { 
+                                            mutableStateOf(alarmManager.isNotificationEnabled(prescription.id)) 
+                                        }
+                                        
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = if (notificationsEnabled) 
+                                                        Icons.Filled.Notifications
+                                                    else 
+                                                        Icons.Outlined.Notifications,
+                                                    contentDescription = "Notification Status",
+                                                    tint = if (notificationsEnabled) 
+                                                        MaterialTheme.colorScheme.primary 
+                                                    else 
+                                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = "Medication Reminders",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = notificationsEnabled,
+                                                onCheckedChange = { isChecked ->
+                                                    // Get first medicine to use for the notification
+                                                    val firstMedicine = medicineList.firstOrNull()
+                                                    if (firstMedicine != null) {
+                                                        val medicineName = firstMedicine.medicine.brandName
+                                                        val dosage = getDosageText(firstMedicine)
+                                                        
+                                                        // Toggle notifications
+                                                        notificationsEnabled = alarmManager.toggleNotifications(
+                                                            prescriptionId = prescription.id,
+                                                            medicineName = medicineName,
+                                                            dosage = dosage
+                                                        )
+                                                        
+                                                        // Show confirmation
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = if (notificationsEnabled) 
+                                                                    "Reminders enabled for ${prescription.id}" 
+                                                                else 
+                                                                    "Reminders disabled for ${prescription.id}"
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            else -> {
+                                // No prescriptions found
+                                Column(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "No prescriptions yet",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Button(
+                                        onClick = { 
+                                            navController.navigate(Route.QRCODE.route)
+                                        },
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    ) {
+                                        Text("Scan Prescription")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Doctors Section
+                Text(
+                    text = "Let's find the doctor",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                doctors.forEach { doctor ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                val doctorId = when(doctor.name) {
+                                    "Dr. Ruben Pinto" -> "ruben"
+                                    "Dr. Alexy Roman" -> "alexy"
+                                    else -> ""
+                                }
+                                navController.navigate("DoctorDetail/$doctorId")
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = doctor.imageRes),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = doctor.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = doctor.specialty,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Articles Section
+                ArticleSection(articles, navController)
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Articles Section
-            ArticleSection(articles, navController)
         }
     }
 }
@@ -507,5 +695,26 @@ fun ArticleSection(
                 }
             }
         }
+    }
+}
+
+// Helper function to extract dosage information from PrescriptionMedicine
+private fun getDosageText(medicine: PrescriptionMedicine): String {
+    val times = medicine.times
+    val morningDose = times.find { it.timeOfDay.equals("morning", ignoreCase = true) }?.dosage ?: 0
+    val afternoonDose = times.find { it.timeOfDay.equals("afternoon", ignoreCase = true) }?.dosage ?: 0
+    val eveningDose = times.find { it.timeOfDay.equals("evening", ignoreCase = true) }?.dosage ?: 0
+    val nightDose = times.find { it.timeOfDay.equals("night", ignoreCase = true) }?.dosage ?: 0
+    
+    val parts = mutableListOf<String>()
+    if (morningDose > 0) parts.add("$morningDose in morning")
+    if (afternoonDose > 0) parts.add("$afternoonDose in afternoon")
+    if (eveningDose > 0) parts.add("$eveningDose in evening")
+    if (nightDose > 0) parts.add("$nightDose at night")
+    
+    return if (parts.isNotEmpty()) {
+        parts.joinToString(", ")
+    } else {
+        "as prescribed"
     }
 }

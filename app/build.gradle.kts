@@ -63,7 +63,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation(libs.androidx.appcompat)
 
     val work_version = "2.10.0"
@@ -76,6 +75,12 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.8.5")
     val room_version = "2.6.1"
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    
+    // Add OkHttp logging interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     implementation("androidx.room:room-runtime:$room_version")
 
@@ -99,6 +104,9 @@ dependencies {
 
     // DataStore for preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    
+    // Accompanist SwipeRefresh
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.31.3-beta")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
