@@ -36,9 +36,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
@@ -65,16 +65,14 @@ fun ProfileScreen(
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(Uri.parse(userState.user.profileImageUri))
-                    .crossfade(true)
-                    .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
-                    .diskCachePolicy(coil3.request.CachePolicy.DISABLED)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .diskCachePolicy(CachePolicy.DISABLED)
                     .build(),
                 contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                fallback = painterResource(id = R.drawable.profile)
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
             )
         } else {
             Image(

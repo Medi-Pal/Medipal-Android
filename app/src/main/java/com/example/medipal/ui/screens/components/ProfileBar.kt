@@ -23,13 +23,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
@@ -64,12 +65,11 @@ fun ProfileBar(
                         AsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data(Uri.parse(userState.user.profileImageUri))
-                                .crossfade(true)
-                                .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
-                                .diskCachePolicy(coil3.request.CachePolicy.DISABLED)
+                                .memoryCachePolicy(CachePolicy.DISABLED)
+                                .diskCachePolicy(CachePolicy.DISABLED)
                                 .build(),
                             contentDescription = "Profile image",
-                            modifier = modifier
+                            modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape),
                             contentScale = ContentScale.Crop,
@@ -87,7 +87,7 @@ fun ProfileBar(
                 }
             }
             Text(
-                text = "How you doing",
+                text = stringResource(R.string.greeting),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Medium,
                 modifier = modifier

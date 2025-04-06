@@ -45,4 +45,7 @@
     <string name="english">Anglais</string>
     <string name="hindi">Hindi</string>
     <string name="french">Français</string>
+    
+    <!-- Profile Bar -->
+    <string name="greeting">Comment allez-vous</string>
 </resources>

@@ -29,18 +29,13 @@ fun ArticlesScreen(
         Article(
             "Mental Health: Managing Stress and Anxiety",
             R.drawable.doctor_8532177_1920,
-            """Learn effective techniques for managing daily stress and anxiety:
+            """Mental health is a crucial part of our overall well-being, and managing stress and anxiety plays a big role in keeping it balanced. In today's fast-paced world, many people experience overwhelming pressure from school, work, relationships, or personal expectations. If left unmanaged, stress and anxiety can lead to emotional exhaustion, physical illness, or even more serious mental health conditions like depression. Recognizing early signs—like irritability, trouble sleeping, or constant worry—is the first step in taking control.
 
-• Understanding Stress and Anxiety: Learn to identify triggers and symptoms
-• Meditation Techniques: Simple 5-minute daily meditation practices
-• Breathing Exercises: Deep breathing and box breathing methods
-• Lifestyle Changes: Sleep hygiene, exercise, and nutrition tips
-• Mindfulness Practices: Stay present and reduce worrying
-• Stress Management: Time management and priority setting
-• Relaxation Techniques: Progressive muscle relaxation and guided imagery
-• Social Support: Building and maintaining support networks
-• Professional Help: When and how to seek professional guidance
-• Daily Coping Strategies: Practical tips for everyday stress""",
+Stress management often begins with lifestyle adjustments. Maintaining a healthy routine with regular sleep, exercise, and a balanced diet can significantly improve how we respond to pressure. Simple activities like walking in nature, listening to music, journaling, or practicing hobbies can also help calm the mind. Time management and learning to say "no" when necessary are practical ways to prevent feeling overwhelmed by too many responsibilities.
+
+One of the most effective tools for managing anxiety is mindfulness and relaxation techniques. Practices like deep breathing, meditation, or yoga help ground us in the present moment and reduce the mental noise that fuels anxiety. Cognitive strategies, such as challenging negative thoughts and replacing them with more balanced ones, also support emotional resilience. In some cases, therapy or counseling can provide guidance and deeper tools for coping.
+
+It's important to remember that seeking help is a sign of strength, not weakness. Talking to friends, family, or a mental health professional can make a huge difference. With the right support and healthy habits, stress and anxiety become manageable. Prioritizing mental health isn't just about avoiding illness—it's about creating a life that feels meaningful, balanced, and joyful.""",
             "5 min read"
         ),
         Article(

@@ -48,16 +48,22 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.isSystemInDarkTheme
 
 data class Doctor(
     val name: String,
@@ -82,6 +88,7 @@ fun HomeScreen(
 ) {
     val userState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val isDarkTheme = isSystemInDarkTheme()
 
     val doctors = listOf(
         Doctor("Dr. Ruben Pinto", "Orthopedic", R.drawable.doctor_icon),
@@ -142,13 +149,14 @@ fun HomeScreen(
         )
     )
 
-    Box(modifier = modifier.fillMaxSize().padding(top=32.dp)) {
+    Box(modifier = modifier.fillMaxSize()) {
+        // Background layout
         Column(modifier = Modifier.fillMaxSize()) {
             // Vector background for top portion
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.4f)  // Increased height ratio
+                    .fillMaxHeight(0.4f)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.vector_2),
@@ -157,27 +165,29 @@ fun HomeScreen(
                     contentScale = ContentScale.FillBounds
                 )
             }
-            // White background for bottom portion
+            // Bottom portion using theme background color
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
             )
         }
 
+        // Content layout with proper insets handling
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = 16.dp)
                 .padding(bottom = 80.dp)
-                .verticalScroll(rememberScrollState())  // Add vertical scroll
+                .verticalScroll(rememberScrollState())
         ) {
             // Top Section with Greeting and Profile
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -205,9 +215,8 @@ fun HomeScreen(
                         AsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data(Uri.parse(userState.user.profileImageUri))
-                                .crossfade(true)
-                                .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
-                                .diskCachePolicy(coil3.request.CachePolicy.DISABLED)
+                                .memoryCachePolicy(CachePolicy.DISABLED)
+                                .diskCachePolicy(CachePolicy.DISABLED)
                                 .build(),
                             contentDescription = "Profile",
                             modifier = Modifier.fillMaxSize(),
@@ -236,12 +245,14 @@ fun HomeScreen(
                         navController.navigate(Route.PRESCRIPTION_DETAIL.route.replace("{prescriptionId}", "1"))
                     },
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)  // Added elevation
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -272,7 +283,7 @@ fun HomeScreen(
             // Doctors Section
             Text(
                 text = "Let's find the doctor",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             
@@ -280,6 +291,7 @@ fun HomeScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(80.dp)
                         .padding(vertical = 4.dp)
                         .clickable {
                             val doctorId = when(doctor.name) {
@@ -289,12 +301,16 @@ fun HomeScreen(
                             }
                             navController.navigate("DoctorDetail/$doctorId")
                         },
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
                     Row(
                         modifier = Modifier
-                            .padding(12.dp)
-                            .fillMaxWidth(),
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
@@ -304,16 +320,17 @@ fun HomeScreen(
                                 .size(40.dp)
                                 .clip(CircleShape)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
                                 text = doctor.name,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Text(
                                 text = doctor.specialty,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -478,8 +495,10 @@ fun ArticleSection(
                         .size(8.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(
-                            if (index == currentItem.value) Color(0xFF0139FE)
-                            else Color.LightGray
+                            if (index == currentItem.value) 
+                                MaterialTheme.colorScheme.primary
+                            else 
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         )
                         .padding(end = 4.dp)
                 )

@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +38,7 @@ import androidx.navigation.NavController
 import com.example.medipal.R
 import com.example.medipal.navigation.Route
 import com.example.medipal.ui.AuthViewModel
+import com.example.medipal.ui.AuthenticationStatus
 
 @Composable
 fun LoginScreen(
@@ -44,12 +47,13 @@ fun LoginScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var phoneNumber by remember {
-        mutableStateOf("")
-    }
-    var isSubmitted by remember {
-        mutableStateOf(false)
-    }
+    var phoneNumber by remember { mutableStateOf("") }
+    var isSubmitted by remember { mutableStateOf(false) }
+    
+    // Observe authentication state
+    val uiState by authViewModel.uiState.collectAsState()
+    val isLoading = uiState.authenticationStatus == AuthenticationStatus.Loading
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -58,48 +62,90 @@ fun LoginScreen(
             .fillMaxSize()
     ) {
         Greeting(modifier)
+        
+        // Phone number input
         OutlinedTextField(
-                    value = phoneNumber,
-                    onValueChange = {
-                        if(it.length <= 10) {
-                            phoneNumber = it
-                        }},
-                    label = {
-                            Text(text = "+91", style = MaterialTheme.typography.titleMedium)
-                    },
-                    modifier = modifier,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                    )
-                )
-            if(phoneNumber.length<10 && isSubmitted){
-                Text(
-                    text = "Phone Number should have 10 digits*",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            Spacer(modifier = Modifier.size(30.dp))
-            Button(
-                onClick = {
-                    if(phoneNumber.length==10){
-                        authViewModel.onLoginClicked(navController, context, phoneNumber){
-                            Log.d("otp", "otp sent")
-                            navController.navigate(Route.OTP.route)
-                    }  }
-                    else {
-                        isSubmitted = true
-                        Toast.makeText(context, "Invalid Phone Number", Toast.LENGTH_SHORT).show()
+            value = phoneNumber,
+            onValueChange = {
+                if(it.length <= 10) {
+                    phoneNumber = it
+                    // Reset validation on change
+                    if (isSubmitted) isSubmitted = false
+                }},
+            label = {
+                    Text(text = "+91", style = MaterialTheme.typography.titleMedium)
+            },
+            modifier = modifier,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+            ),
+            isError = phoneNumber.length < 10 && isSubmitted
+        )
+        
+        // Error message
+        if(phoneNumber.length < 10 && isSubmitted){
+            Text(
+                text = "Phone Number should have 10 digits*",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        
+        // Show error from authentication state
+        if(uiState.authenticationStatus is AuthenticationStatus.Error) {
+            Text(
+                text = (uiState.authenticationStatus as AuthenticationStatus.Error).message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.size(30.dp))
+        
+        // Login button with loading state
+        Button(
+            onClick = {
+                if(phoneNumber.length == 10) {
+                    authViewModel.onLoginClicked(navController, context, phoneNumber) {
+                        Log.d("otp", "otp sent")
+                        navController.navigate(Route.OTP.route)
                     }
-                },
-                shape = RoundedCornerShape(8.dp),
-                modifier = modifier.width(200.dp),
-            ) {
+                }
+                else {
+                    isSubmitted = true
+                    Toast.makeText(context, "Invalid Phone Number", Toast.LENGTH_SHORT).show()
+                }
+            },
+            shape = RoundedCornerShape(8.dp),
+            modifier = modifier.width(200.dp),
+            enabled = !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
                 Text(text = "Get OTP")
             }
         }
+        
+        // Debug info during development - You can remove this later
+        if (phoneNumber == "9112726258") {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Try adding a different phone number or check Firebase console for errors",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
     }
+}
 
 @Composable
 fun Greeting(modifier: Modifier) {

@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import coil.imageLoader
 
 sealed class ImageSaveState {
     object None : ImageSaveState()
@@ -100,9 +101,17 @@ class EditProfileViewModel(
                     // Delete old profile image if exists
                     _profileImageUri.value?.let { oldUri ->
                         try {
-                            File(oldUri.path!!).delete()
+                            // Only attempt to delete files that are in our app's directory
+                            val oldPath = oldUri.path
+                            if (oldPath != null && oldPath.contains(application.filesDir.absolutePath)) {
+                                val oldFile = File(oldPath)
+                                if (oldFile.exists()) {
+                                    oldFile.delete()
+                                }
+                            }
                         } catch (e: Exception) {
                             // Ignore deletion errors
+                            e.printStackTrace()
                         }
                     }
 
@@ -119,7 +128,8 @@ class EditProfileViewModel(
 
                     // Save the file path in SharedPreferences and update user
                     val fileUri = Uri.fromFile(imageFile)
-                    val uriString = fileUri.toString()
+                    // Add timestamp to URI to force refresh
+                    val uriString = fileUri.toString() + "?t=" + System.currentTimeMillis()
                     
                     application.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
                         .edit {
@@ -127,7 +137,7 @@ class EditProfileViewModel(
                         }
 
                     // Update the states
-                    _profileImageUri.value = fileUri
+                    _profileImageUri.value = Uri.parse(uriString)
                     _user.update { existingUser -> 
                         // Ensure we preserve all user data when updating the profile image URI
                         existingUser.copy(profileImageUri = uriString)
@@ -138,12 +148,19 @@ class EditProfileViewModel(
                     
                     // Update UserDetailsViewModel and trigger reload
                     withContext(Dispatchers.Main) {
+                        // Clear Coil's caches
+                        application.imageLoader.memoryCache?.clear()
+                        application.imageLoader.diskCache?.clear()
+                        
                         // Update the shared UserDetailsViewModel
-                        userDetailsViewModel.updateProfileImage(fileUri)
+                        userDetailsViewModel.updateProfileImage(Uri.parse(uriString))
                         // Reload data in UserDetailsViewModel 
                         userDetailsViewModel.reloadUser()
                         // Also force UI refresh to ensure image is updated in all views
-                        kotlinx.coroutines.delay(100)
+                        kotlinx.coroutines.delay(300)
+                        userDetailsViewModel.forceRefresh()
+                        kotlinx.coroutines.delay(200)
+                        // One more refresh for good measure
                         userDetailsViewModel.forceRefresh()
                     }
                     

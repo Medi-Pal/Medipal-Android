@@ -59,4 +59,7 @@
     <string name="english">English</string>
     <string name="hindi">Hindi</string>
     <string name="french">French</string>
+    
+    <!-- Profile Bar -->
+    <string name="greeting">How you doing</string>
 </resources>

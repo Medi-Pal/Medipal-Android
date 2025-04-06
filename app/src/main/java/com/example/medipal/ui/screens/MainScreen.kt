@@ -197,7 +197,7 @@ fun NavigationBar(
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
             .clip(RoundedCornerShape(25.dp))
             .fillMaxWidth()
-            .background(color= MaterialTheme.colorScheme.primary)
+            .background(color = Color(0xFF0062FF))
     ) {
         listOfIcons.forEachIndexed {index, element->
             NavbarIcon(

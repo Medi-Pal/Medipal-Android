@@ -43,12 +43,23 @@ class UserDetailsScreenViewModel(
             _uiState.update { currentState -> 
                 // Create new User object with same data to force recomposition
                 val currentUser = currentState.user
+                
+                // Add a timestamp to the image URI if it exists
+                val refreshedProfileUri = if (currentUser.profileImageUri != null) {
+                    // Remove any existing timestamp query parameter
+                    val baseUri = currentUser.profileImageUri!!.split("?").first()
+                    // Add a new timestamp
+                    baseUri + "?t=" + System.currentTimeMillis()
+                } else {
+                    null
+                }
+                
                 val refreshedUser = currentUser.copy(
                     id = currentUser.id,
                     name = currentUser.name,
                     phoneNumber = currentUser.phoneNumber,
                     email = currentUser.email,
-                    profileImageUri = currentUser.profileImageUri
+                    profileImageUri = refreshedProfileUri
                 )
                 currentState.copy(user = refreshedUser)
             }

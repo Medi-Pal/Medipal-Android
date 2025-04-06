@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -24,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,12 +42,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 import com.example.medipal.R
 import com.example.medipal.ui.screens.viewmodels.EditProfileViewModel
 import com.example.medipal.ui.screens.viewmodels.ImageSaveState
@@ -74,7 +79,7 @@ fun EditProfileScreen(
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
-        ProfileTopBar(navController = navController, text = "Profile")
+        EditProfileTopBar(navController = navController, text = "Profile")
         
         Box(
             contentAlignment = Alignment.Center
@@ -101,19 +106,15 @@ fun EditProfileScreen(
                         AsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data(profileImageUri)
-                                .crossfade(true)
-                                .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
-                                .diskCachePolicy(coil3.request.CachePolicy.DISABLED)
+                                .memoryCachePolicy(CachePolicy.DISABLED)
+                                .diskCachePolicy(CachePolicy.DISABLED)
+                                .placeholder(R.drawable.profile)
                                 .build(),
                             contentDescription = "Profile Picture",
                             modifier = Modifier
-                                .size(80.dp)
+                                .size(120.dp)
                                 .clip(CircleShape),
-                            contentScale = ContentScale.Crop,
-                            onError = {
-                                // This will be called when image loading fails
-                            },
-                            fallback = painterResource(id = R.drawable.profile)
+                            contentScale = ContentScale.Crop
                         )
                     } else {
                         Image(
@@ -138,7 +139,7 @@ fun EditProfileScreen(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Change profile picture",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -189,6 +190,32 @@ fun InputField(
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
+        )
+    }
+}
+
+@Composable
+fun EditProfileTopBar(
+    navController: NavController,
+    text: String,
+    modifier: Modifier = Modifier
+){
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding()
+    ) {
+        TextButton(onClick = { navController.navigateUp() }) {
+            Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Go back")
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
         )
     }
 }

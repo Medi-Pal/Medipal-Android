@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.medipal.R
 import com.example.medipal.ui.screens.viewmodels.LanguageViewModel
+import com.example.medipal.ui.screens.viewmodels.ThemeViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.appcompat.app.AppCompatDelegate
 
 data class Language(val code: String, val nameResId: Int)
 
@@ -30,6 +33,7 @@ data class Language(val code: String, val nameResId: Int)
 fun SettingsScreen(
     navController: NavController,
     languageViewModel: LanguageViewModel,
+    themeViewModel: ThemeViewModel = viewModel(factory = ThemeViewModel.factory),
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -43,9 +47,15 @@ fun SettingsScreen(
     )
     
     val currentLanguage = remember { mutableStateOf(languageViewModel.getStoredLanguage()) }
+    
+    // Theme states - now we'll only use isDarkTheme and ignore followSystemTheme
+    val isDarkTheme by themeViewModel.isDarkTheme
+    
+    // Dark theme is enabled when isDarkTheme is true
+    val darkThemeEnabled = isDarkTheme
 
     val listOfItems = listOf(
-        stringResource(R.string.light_theme),
+        "Theme",
         stringResource(R.string.notifications),
         stringResource(R.string.delete_account),
         stringResource(R.string.language)
@@ -76,6 +86,7 @@ fun SettingsScreen(
                 tonalElevation = 1.dp
             ) {
                 Column {
+                    // Light/Dark theme toggle - now directly controls system theme
                     ListItem(
                         headlineContent = { Text(listOfItems[0]) },
                         leadingContent = {
@@ -87,9 +98,44 @@ fun SettingsScreen(
                             )
                         },
                         trailingContent = {
-                            Switch(checked = !isSystemInDarkTheme(), onCheckedChange = {})
+                            Switch(
+                                checked = darkThemeEnabled, 
+                                onCheckedChange = { isDark ->
+                                    // Always set the follow system theme to false
+                                    themeViewModel.setFollowSystemTheme(false)
+                                    
+                                    // Update the app theme setting
+                                    themeViewModel.setDarkTheme(isDark)
+                                    
+                                    // Control system theme with AppCompatDelegate
+                                    if (isDark) {
+                                        // Dark mode
+                                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                                    } else {
+                                        // Light mode
+                                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                                    }
+                                    
+                                    // Force activity recreation to apply theme immediately
+                                    activity.recreate()
+                                },
+                                colors = if (isDarkTheme) {
+                                    SwitchDefaults.colors(
+                                        checkedThumbColor = MaterialTheme.colorScheme.onSurface,
+                                        checkedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        checkedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                        uncheckedTrackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                                        uncheckedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                    )
+                                } else {
+                                    SwitchDefaults.colors() // Default colors in light mode
+                                }
+                            )
                         }
                     )
+                    
+                    // Removed the "Follow system theme" option
                 }
             }
 

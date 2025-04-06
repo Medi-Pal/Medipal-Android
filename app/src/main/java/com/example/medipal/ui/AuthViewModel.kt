@@ -100,10 +100,11 @@ class AuthViewModel(
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
-                Log.d("phoneBook", "verification failed $p0")
+                Log.e("phoneBook", "verification failed: ${p0.message}", p0)
+                Toast.makeText(context, "Verification failed: ${p0.message}", Toast.LENGTH_LONG).show()
                 _uiState.update {
                     it.copy(
-                        authenticationStatus = AuthenticationStatus.Error("OTP invalid")
+                        authenticationStatus = AuthenticationStatus.Error("OTP sending failed: ${p0.message}")
                     )
                 }
             }
@@ -111,22 +112,30 @@ class AuthViewModel(
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
                 storedVerificationId = p0
-                Log.d("phoneBook", "code sent$storedVerificationId")
+                Log.d("phoneBook", "code sent: $storedVerificationId")
                 _uiState.update {
                     it.copy(
                         authenticationStatus = AuthenticationStatus.Loading
                     )
                 }
+                Toast.makeText(context, "OTP sent to +91$phoneNumber", Toast.LENGTH_SHORT).show()
                 onCodeSend()
             }
         }
-        val option = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber("+91$phoneNumber")
-            .setTimeout(30L, TimeUnit.SECONDS)
-            .setActivity(context as Activity)
-            .setCallbacks(callBack)
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(option)
+        
+        try {
+            Toast.makeText(context, "Sending OTP to +91$phoneNumber...", Toast.LENGTH_SHORT).show()
+            val option = PhoneAuthOptions.newBuilder(auth)
+                .setPhoneNumber("+91$phoneNumber")
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setActivity(context as Activity)
+                .setCallbacks(callBack)
+                .build()
+            PhoneAuthProvider.verifyPhoneNumber(option)
+        } catch (e: Exception) {
+            Log.e("phoneBook", "Exception during OTP sending: ${e.message}", e)
+            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     fun verifyPhoneNumberWithCode(
