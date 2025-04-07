@@ -36,7 +36,7 @@ sealed class ImageSaveState {
 class EditProfileViewModel(
     private val userRepository: UserRepository,
     private val application: MedipalApplication,
-    private val userDetailsViewModel: UserDetailsScreenViewModel
+    val userDetailsViewModel: UserDetailsScreenViewModel
 ) : ViewModel() {
 
     private val _user = MutableStateFlow(User(0, "", "", ""))
@@ -47,6 +47,10 @@ class EditProfileViewModel(
 
     private val _imageSaveState = MutableStateFlow<ImageSaveState>(ImageSaveState.None)
     val imageSaveState: StateFlow<ImageSaveState> = _imageSaveState.asStateFlow()
+    
+    // Add a dedicated email error state
+    private val _emailError = MutableStateFlow<String?>(null)
+    val emailError: StateFlow<String?> = _emailError.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -56,6 +60,9 @@ class EditProfileViewModel(
             if (userData != null) {
                 // Update the user state with database values
                 _user.value = userData
+                
+                // Validate email immediately
+                _emailError.value = validateEmail(userData.email)
                 
                 // Load profile image if it exists in user data
                 userData.profileImageUri?.let {
@@ -204,14 +211,46 @@ class EditProfileViewModel(
     }
 
     fun editEmail(email: String) {
+        // Update user email
         _user.update { it.copy(
             email = email
         )}
+        
+        // Validate email and update our own error state
+        val error = validateEmail(email)
+        _emailError.value = error
+        
+        // Also update the UserDetailsViewModel for consistency
+        userDetailsViewModel.editEmail(email)
+    }
+    
+    private fun validateEmail(email: String): String? {
+        return when {
+            email.isBlank() -> "Email cannot be empty"
+            !email.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) -> "Please enter a valid email address"
+            else -> null
+        }
     }
 
     fun updateUser() {
         viewModelScope.launch {
             try {
+                // Validate email first
+                val emailError = validateEmail(user.value.email)
+                if (emailError != null) {
+                    _emailError.value = emailError
+                    
+                    // Show validation error toast
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            application,
+                            "Please fix validation errors before updating",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+                
                 // Save user data to database
                 userRepository.insertOrUpdateUser(user.value)
                 

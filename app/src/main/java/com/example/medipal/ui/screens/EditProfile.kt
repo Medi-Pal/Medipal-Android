@@ -163,7 +163,23 @@ fun EditProfileScreen(
             },
             keyboardType = KeyboardType.Phone
         )
-        InputField(label = "Email", value = user.email, onValueChange = viewModel::editEmail, keyboardType = KeyboardType.Email)
+        
+        // Get user details state to access error messages
+        val userDetailsState = viewModel.userDetailsViewModel.uiState.collectAsState().value
+        
+        // Get the email error state directly from our viewModel
+        val emailError by viewModel.emailError.collectAsState()
+        
+        // Make the email field validation more responsive
+        InputField(
+            label = "Email", 
+            value = user.email, 
+            onValueChange = { 
+                viewModel.editEmail(it)
+            }, 
+            keyboardType = KeyboardType.Email,
+            error = emailError
+        )
 
         Button(
             onClick = viewModel::updateUser,
@@ -180,7 +196,8 @@ fun InputField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    error: String? = null
 ) {
     Column {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
@@ -189,7 +206,11 @@ fun InputField(
             onValueChange = onValueChange,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
+            isError = error != null,
+            supportingText = if (error != null) {
+                { Text(text = error, color = MaterialTheme.colorScheme.error) }
+            } else null,
+            modifier = Modifier.width(300.dp)
         )
     }
 }

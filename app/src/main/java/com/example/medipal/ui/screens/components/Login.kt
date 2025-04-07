@@ -132,18 +132,6 @@ fun LoginScreen(
                 Text(text = "Get OTP")
             }
         }
-        
-        // Debug info during development - You can remove this later
-        if (phoneNumber == "9112726258") {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Try adding a different phone number or check Firebase console for errors",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
     }
 }
 
