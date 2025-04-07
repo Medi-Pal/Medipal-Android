@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,6 +31,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +54,7 @@ import com.example.medipal.data.model.PrescriptionMedicine
 import com.example.medipal.notifications.PrescriptionAlarmManager
 import com.example.medipal.ui.screens.viewmodels.PrescriptionViewModel
 import com.example.medipal.utils.DateUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,9 +69,35 @@ fun PrescriptionScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    var lastRefreshTime by remember { mutableStateOf(0L) }
+
+    // Register broadcast receiver when the screen is created
+    LaunchedEffect(Unit) {
+        viewModel.registerRefreshReceiver(context)
+    }
+    
+    // Unregister broadcast receiver when the screen is destroyed
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.unregisterRefreshReceiver(context)
+        }
+    }
 
     LaunchedEffect(prescriptionId) {
         viewModel.fetchPrescription(prescriptionId)
+    }
+    
+    // Add a periodic refresh mechanism
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(30000) // Refresh every 30 seconds
+            val currentTime = System.currentTimeMillis()
+            // Only refresh if it's been more than 5 seconds since last refresh
+            if (currentTime - lastRefreshTime > 5000) {
+                viewModel.fetchPrescription(prescriptionId)
+                lastRefreshTime = currentTime
+            }
+        }
     }
 
     Scaffold(
@@ -86,6 +115,22 @@ fun PrescriptionScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    // Add a refresh button
+                    IconButton(onClick = { 
+                        viewModel.fetchPrescription(prescriptionId)
+                        lastRefreshTime = System.currentTimeMillis()
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Refreshing prescription details...")
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh",
                             tint = Color.White
                         )
                     }
@@ -425,6 +470,21 @@ fun PrescriptionScreen(
                                                     // Calculate total dosage
                                                     val totalDosage = prescriptionMedicine.times.sumOf { it.dosage }
                                                     
+                                                    // Helper function to determine the appropriate unit based on medicine type
+                                                    fun getMedicineUnit(medicineType: String?, dosage: Int): String {
+                                                        return when (medicineType?.lowercase()) {
+                                                            "tablet", "tablets", "pill", "pills", "capsule", "capsules" -> 
+                                                                if (dosage == 1) "tablet" else "tablets"
+                                                            "syrup", "liquid", "solution" -> "ml"
+                                                            "drop", "drops" -> if (dosage == 1) "drop" else "drops"
+                                                            "cream", "ointment", "gel" -> "application"
+                                                            "injection", "shot" -> if (dosage == 1) "injection" else "injections"
+                                                            "spray", "puff" -> if (dosage == 1) "spray" else "sprays"
+                                                            "sachet", "powder" -> if (dosage == 1) "sachet" else "sachets"
+                                                            else -> "" // Default to empty string if type is unknown
+                                                        }
+                                                    }
+                                                    
                                                     prescriptionMedicine.times.forEach { timing ->
                                                         Row(
                                                             modifier = Modifier
@@ -433,11 +493,13 @@ fun PrescriptionScreen(
                                                             horizontalArrangement = Arrangement.SpaceBetween
                                                         ) {
                                                             Text(
-                                                                text = timing.timeOfDay,
+                                                                text = timing.timeOfDay.replaceFirstChar { it.uppercase() },
                                                                 style = MaterialTheme.typography.bodyMedium
                                                             )
+                                                            
+                                                            val unit = getMedicineUnit(prescriptionMedicine.medicine.type, timing.dosage)
                                                             Text(
-                                                                text = "${timing.dosage}",
+                                                                text = if (unit.isNotEmpty()) "${timing.dosage} $unit" else "${timing.dosage}",
                                                                 style = MaterialTheme.typography.bodyMedium
                                                             )
                                                         }
@@ -461,8 +523,11 @@ fun PrescriptionScreen(
                                                             style = MaterialTheme.typography.bodyMedium,
                                                             fontWeight = FontWeight.Bold
                                                         )
+                                                        
+                                                        val totalDosage = prescriptionMedicine.times.sumOf { it.dosage }
+                                                        val unit = getMedicineUnit(prescriptionMedicine.medicine.type, totalDosage)
                                                         Text(
-                                                            text = "$totalDosage",
+                                                            text = if (unit.isNotEmpty()) "$totalDosage $unit" else "$totalDosage",
                                                             style = MaterialTheme.typography.bodyMedium,
                                                             fontWeight = FontWeight.Bold
                                                         )
@@ -517,6 +582,7 @@ fun PrescriptionScreen(
                                                             checked = notificationsEnabled,
                                                             onCheckedChange = { isChecked ->
                                                                 val medicineName = prescriptionMedicine.medicine.brandName
+                                                                val medicineType = prescriptionMedicine.medicine.type
                                                                 
                                                                 // Get dosage information
                                                                 val dosageText = StringBuilder()
@@ -536,7 +602,8 @@ fun PrescriptionScreen(
                                                                 notificationsEnabled = alarmManager.toggleNotifications(
                                                                     prescriptionId = prescriptionId,
                                                                     medicineName = medicineName,
-                                                                    dosage = dosage
+                                                                    dosage = dosage,
+                                                                    medicineType = medicineType
                                                                 )
                                                                 
                                                                 // Show confirmation

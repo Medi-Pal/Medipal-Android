@@ -88,6 +88,12 @@ class PrescriptionRepository(
         }
     }
     
+    // Update a prescription in the local database
+    // This is used for updating medicine count and other local-only changes
+    suspend fun updatePrescription(prescription: Prescription) {
+        prescriptionDao.insertPrescription(prescription)
+    }
+    
     // Clear all cached prescriptions
     suspend fun clearCachedPrescriptions() {
         prescriptionDao.deleteAllPrescriptions()

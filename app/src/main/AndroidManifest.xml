@@ -65,6 +65,15 @@
                 <action android:name="com.example.medipal.ACTION_MEDICATION_SOS" />
             </intent-filter>
         </receiver>
+        
+        <!-- Medication Taken Receiver -->
+        <receiver
+            android:name=".notifications.MedicationTakenReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.medipal.ACTION_MARK_MEDICATION_TAKEN" />
+            </intent-filter>
+        </receiver>
     </application>
 
 

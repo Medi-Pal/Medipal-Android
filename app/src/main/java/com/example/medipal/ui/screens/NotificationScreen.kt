@@ -1,15 +1,7 @@
 package com.example.medipal.ui.screens
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.telephony.SmsManager
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,14 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.DateRange
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,11 +34,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,14 +49,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.medipal.MedipalApplication
 import com.example.medipal.data.model.Notification
 import com.example.medipal.data.model.NotificationType
-import com.example.medipal.ui.screens.viewmodels.EmergencyContactViewModel
-import com.example.medipal.ui.screens.viewmodels.UserDetailsScreenViewModel
-import kotlinx.coroutines.launch
+import com.example.medipal.data.model.Prescription
+import com.example.medipal.settings.MedicationTimePreferences
+import com.example.medipal.ui.screens.viewmodels.PrescriptionListViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -80,91 +66,34 @@ fun NotificationScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val application = context.applicationContext as? MedipalApplication
-    
-    // Setup EmergencyContactViewModel to get emergency contacts
-    val emergencyContactViewModel: EmergencyContactViewModel? = if (application != null) {
-        viewModel(
-            factory = EmergencyContactViewModel.Factory(application.container.getEmergencyContactDao())
-        )
-    } else null
-    
-    // Get user information for SMS
-    val userViewModel: UserDetailsScreenViewModel = viewModel(factory = UserDetailsScreenViewModel.factory)
-    val userState by userViewModel.uiState.collectAsState()
-    val userName = userState.user.name
-    
-    val emergencyContacts by emergencyContactViewModel?.contacts?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
-    
-    var notifications by remember { mutableStateOf(generateSampleNotifications()) }
-    var isRefreshing by remember { mutableStateOf(false) }
+    val prescriptionListViewModel: PrescriptionListViewModel = viewModel(factory = PrescriptionListViewModel.factory)
+    val uiState by prescriptionListViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     
-    // Permission launcher for SMS
-    val smsPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Permission granted, will handle SMS in the button click
-        } else {
-            // Permission denied
-            Toast.makeText(context, "SMS permission is required to send emergency alerts", Toast.LENGTH_LONG).show()
-        }
+    // Get medication time preferences from settings
+    val timePreferences = remember { MedicationTimePreferences(context) }
+    
+    // Maintain a list of read notification IDs
+    var readNotificationIds by remember { mutableStateOf(setOf<String>()) }
+    
+    // Generate actual medication notifications from prescriptions
+    val medicationNotifications = remember(uiState.prescriptions, readNotificationIds) {
+        generateMedicationNotifications(uiState.prescriptions, timePreferences, readNotificationIds)
     }
     
-    // Function to send SMS
-    fun sendEmergencySMS(phoneNumber: String, contactName: String) {
-        try {
-            val message = "EMERGENCY ALERT: $userName is trying to reach you for emergency assistance."
-            val smsManager = SmsManager.getDefault()
-            smsManager.sendTextMessage(phoneNumber, null, message, null, null)
-            scope.launch {
-                snackbarHostState.showSnackbar("Emergency SMS sent to $contactName")
-            }
-        } catch (e: Exception) {
-            scope.launch {
-                snackbarHostState.showSnackbar("Failed to send SMS: ${e.message}")
-            }
-        }
-    }
-    
-    // Function to handle emergency call with SMS
-    fun handleEmergencyCall(phoneNumber: String, contactName: String) {
-        // First check if we have SMS permission
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) 
-            == PackageManager.PERMISSION_GRANTED) {
-            // Send SMS before initiating call
-            sendEmergencySMS(phoneNumber, contactName)
-            
-            // Initiate phone call
-            val intent = Intent(Intent.ACTION_DIAL).apply {
-                data = Uri.parse("tel:$phoneNumber")
-            }
-            if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
-            } else {
-                scope.launch {
-                    snackbarHostState.showSnackbar("No app found to handle phone calls")
-                }
-            }
-        } else {
-            // Request SMS permission
-            smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
-        }
+    // Refresh prescriptions when the screen is first displayed
+    LaunchedEffect(key1 = Unit) {
+        prescriptionListViewModel.fetchPrescriptions()
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Notifications") },
+                title = { Text("Medication Reminders") },
                 actions = {
                     IconButton(onClick = {
-                        isRefreshing = true
-                        // Simulate refreshing
-                        notifications = generateSampleNotifications()
-                        isRefreshing = false
+                        prescriptionListViewModel.fetchPrescriptions()
                     }) {
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
@@ -181,13 +110,13 @@ fun NotificationScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Emergency Call Button Card
+            // Medication Notifications Header
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFEBEE)
+                    containerColor = Color(0xFFE1F5FE)
                 )
             ) {
                 Column(
@@ -195,16 +124,16 @@ fun NotificationScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Call,
+                        imageVector = Icons.Outlined.FavoriteBorder,
                         contentDescription = null,
-                        tint = Color(0xFFE53935),
+                        tint = Color(0xFF2196F3),
                         modifier = Modifier.size(32.dp)
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Emergency Call & SMS",
+                        text = "Your Medication Schedule",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -212,170 +141,91 @@ fun NotificationScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Your emergency contacts will be notified with an SMS when you call",
+                        text = "This screen shows your upcoming and past medication reminders. Tap on a reminder to mark it as taken.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center
                     )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    if (emergencyContacts.isEmpty()) {
-                        Text(
-                            text = "No emergency contacts found. Add contacts in the SOS section.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Default Emergency Numbers
-                        Button(
-                            onClick = {
-                                // For 911, we don't send SMS
-                                val intent = Intent(Intent.ACTION_DIAL).apply {
-                                    data = Uri.parse("tel:911")
-                                }
-                                if (intent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(intent)
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("No app found to handle phone calls")
-                                    }
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFE53935)
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Call Emergency Services (911)")
-                        }
-                    } else {
-                        // Call for Help Button (Send SMS to all contacts)
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFDCDB)),
-                            shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(2.dp, Color(0xFF9C0006))
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "Emergency Alert",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF9C0006)
-                                )
-                                
-                                Spacer(modifier = Modifier.height(8.dp))
-                                
-                                Text(
-                                    text = "This will send an emergency SMS to all your contacts",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                                
-                                Spacer(modifier = Modifier.height(12.dp))
-                                
-                                Button(
-                                    onClick = {
-                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) 
-                                            == PackageManager.PERMISSION_GRANTED) {
-                                            
-                                            // Send SMS to all emergency contacts
-                                            emergencyContacts.forEach { contact ->
-                                                sendEmergencySMS(contact.phoneNumber, contact.name)
-                                            }
-                                            
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar("Emergency alerts sent to all contacts!")
-                                            }
-                                        } else {
-                                            // Request SMS permission
-                                            smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFD32F2F)
-                                    ),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(56.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Call,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            "CALL FOR HELP",
-                                            fontWeight = FontWeight.Bold,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Individual Emergency Contact Buttons
-                        Text(
-                            text = "Or call individual contacts:",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                        
-                        // Emergency Contact Buttons
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            emergencyContacts.take(3).forEach { contact ->
-                                Button(
-                                    onClick = {
-                                        handleEmergencyCall(contact.phoneNumber, contact.name)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFE53935)
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text("Call & Alert ${contact.name} (${contact.phoneNumber})")
-                                }
-                            }
-                        }
-                    }
                 }
             }
             
-            // Notifications
-            if (notifications.isEmpty()) {
+            // Show loading state
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator()
+                }
+            } 
+            // Show error state
+            else if (uiState.error != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Unable to load medication reminders: ${uiState.error}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            // Show empty state
+            else if (medicationNotifications.isEmpty()) {
                 EmptyNotifications(modifier = Modifier.weight(1f))
-            } else {
+            } 
+            // Show medication reminders
+            else {
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    item {
-                        Text(
-                            text = "You have ${notifications.count { !it.isRead }} unread notifications",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
+                    // Upcoming reminders section
+                    val upcomingReminders = medicationNotifications.filter { !it.isRead }
+                    if (upcomingReminders.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Upcoming Medication Reminders",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                        
+                        items(upcomingReminders) { notification ->
+                            NotificationItem(
+                                notification = notification,
+                                onClick = {
+                                    // Mark as read when clicked
+                                    readNotificationIds = readNotificationIds + notification.id
+                                }
+                            )
+                        }
                     }
-
-                    items(notifications) { notification ->
-                        NotificationItem(notification = notification)
+                    
+                    // Past reminders section
+                    val pastReminders = medicationNotifications.filter { it.isRead }
+                    if (pastReminders.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Past Medication Reminders",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        
+                        items(pastReminders) { notification ->
+                            NotificationItem(notification = notification)
+                        }
                     }
 
                     item {
@@ -406,16 +256,18 @@ fun EmptyNotifications(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "No notifications yet",
+            text = "No medication reminders",
             style = MaterialTheme.typography.titleLarge
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "We'll notify you when something important happens",
+            text = "You don't have any active medication prescriptions. Add prescriptions to receive reminders.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
         )
     }
 }
@@ -423,6 +275,7 @@ fun EmptyNotifications(modifier: Modifier = Modifier) {
 @Composable
 fun NotificationItem(
     notification: Notification,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
@@ -430,15 +283,21 @@ fun NotificationItem(
 
     val (icon, iconTint) = when (notification.type) {
         NotificationType.APPOINTMENT -> Icons.Outlined.DateRange to Color(0xFF4CAF50) // Green
-        NotificationType.MEDICATION -> Icons.Outlined.Info to Color(0xFF2196F3) // Blue
-        NotificationType.REMINDER -> Icons.Outlined.Notifications to Color(0xFFFFC107) // Yellow
-        NotificationType.SYSTEM -> Icons.Outlined.Notifications to Color(0xFF9C27B0) // Purple
+        NotificationType.MEDICATION -> Icons.Outlined.FavoriteBorder to Color(0xFF2196F3) // Blue
+        NotificationType.REMINDER -> Icons.Outlined.Refresh to Color(0xFFFFC107) // Yellow
+        else -> Icons.Outlined.FavoriteBorder to Color(0xFF2196F3) // Default to medication
     }
 
     val alpha = if (notification.isRead) 0.7f else 1.0f
+    
+    val cardModifier = if (onClick != null) {
+        modifier.fillMaxWidth().clickable { onClick() }
+    } else {
+        modifier.fillMaxWidth()
+    }
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = cardModifier,
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = if (notification.isRead) 0.dp else 2.dp)
     ) {
@@ -511,146 +370,153 @@ fun NotificationItem(
     }
 }
 
-// Function to generate sample notifications for demonstration
-private fun generateSampleNotifications(): List<Notification> {
-    val calendar = Calendar.getInstance()
-    val currentTime = calendar.time
-    
-    // Create notifications from past few days
+// Generate medication notifications based on actual prescriptions
+private fun generateMedicationNotifications(
+    prescriptions: List<Prescription>, 
+    timePreferences: MedicationTimePreferences,
+    readNotificationIds: Set<String>
+): List<Notification> {
     val notifications = mutableListOf<Notification>()
+    val currentTime = Date()
+    val calendar = Calendar.getInstance()
     
-    // Today's newest notification - unread
-    notifications.add(
-        Notification(
-            id = "0",
-            title = "New Lab Results Available",
-            description = "Your recent cholesterol test results have been uploaded. Your levels are within normal range.",
-            timestamp = Date(currentTime.time - (1000 * 60 * 5)), // 5 minutes ago
-            type = NotificationType.SYSTEM,
-            isRead = false
-        )
-    )
+    // Get configured medication times from settings
+    val (morningHour, morningMinute) = timePreferences.getMorningTime()
+    val (afternoonHour, afternoonMinute) = timePreferences.getAfternoonTime()
+    val (eveningHour, eveningMinute) = timePreferences.getEveningTime()
+    val (nightHour, nightMinute) = timePreferences.getNightTime()
     
-    // Today's notifications
-    notifications.add(
-        Notification(
-            id = "1",
-            title = "Medication Reminder",
-            description = "Time to take your Azithromycin - 1 tablet after breakfast",
-            timestamp = Date(currentTime.time - (1000 * 60 * 30)), // 30 minutes ago
-            type = NotificationType.MEDICATION,
-            isRead = false
-        )
-    )
+    // Process each prescription that has medicines
+    prescriptions.forEach { prescription ->
+        if (prescription.medicineList.isNotEmpty()) {
+            // Process each medicine in the prescription
+            prescription.medicineList.forEach { medicine ->
+                // Create notifications based on medicine timings
+                val medicineTimes = medicine.times
+                
+                // Morning medication
+                val morningTime = medicineTimes.find { it.timeOfDay.equals("morning", ignoreCase = true) }
+                if (morningTime != null && morningTime.dosage > 0) {
+                    // Create a morning notification for today
+                    calendar.set(Calendar.HOUR_OF_DAY, morningHour) // Use configured time
+                    calendar.set(Calendar.MINUTE, morningMinute)
+                    
+                    val notificationId = "${prescription.id}-${medicine.medicine.drugName}-morning"
+                    val isRead = calendar.time.before(currentTime) || notificationId in readNotificationIds
+                    
+                    notifications.add(
+                        Notification(
+                            id = notificationId,
+                            title = "Morning Medication Reminder",
+                            description = "Time to take ${medicine.medicine.brandName} - ${morningTime.dosage} ${if (morningTime.dosage > 1) "tablets" else "tablet"} in the morning",
+                            timestamp = calendar.time,
+                            type = NotificationType.MEDICATION,
+                            isRead = isRead
+                        )
+                    )
+                }
+                
+                // Afternoon medication
+                val afternoonTime = medicineTimes.find { it.timeOfDay.equals("afternoon", ignoreCase = true) }
+                if (afternoonTime != null && afternoonTime.dosage > 0) {
+                    // Create an afternoon notification for today
+                    calendar.set(Calendar.HOUR_OF_DAY, afternoonHour) // Use configured time
+                    calendar.set(Calendar.MINUTE, afternoonMinute)
+                    
+                    val notificationId = "${prescription.id}-${medicine.medicine.drugName}-afternoon"
+                    val isRead = calendar.time.before(currentTime) || notificationId in readNotificationIds
+                    
+                    notifications.add(
+                        Notification(
+                            id = notificationId,
+                            title = "Afternoon Medication Reminder",
+                            description = "Time to take ${medicine.medicine.brandName} - ${afternoonTime.dosage} ${if (afternoonTime.dosage > 1) "tablets" else "tablet"} in the afternoon",
+                            timestamp = calendar.time,
+                            type = NotificationType.MEDICATION,
+                            isRead = isRead
+                        )
+                    )
+                }
+                
+                // Evening medication
+                val eveningTime = medicineTimes.find { it.timeOfDay.equals("evening", ignoreCase = true) }
+                if (eveningTime != null && eveningTime.dosage > 0) {
+                    // Create an evening notification for today
+                    calendar.set(Calendar.HOUR_OF_DAY, eveningHour) // Use configured time
+                    calendar.set(Calendar.MINUTE, eveningMinute)
+                    
+                    val notificationId = "${prescription.id}-${medicine.medicine.drugName}-evening"
+                    val isRead = calendar.time.before(currentTime) || notificationId in readNotificationIds
+                    
+                    notifications.add(
+                        Notification(
+                            id = notificationId,
+                            title = "Evening Medication Reminder",
+                            description = "Time to take ${medicine.medicine.brandName} - ${eveningTime.dosage} ${if (eveningTime.dosage > 1) "tablets" else "tablet"} in the evening",
+                            timestamp = calendar.time,
+                            type = NotificationType.MEDICATION,
+                            isRead = isRead
+                        )
+                    )
+                }
+                
+                // Night medication
+                val nightTime = medicineTimes.find { it.timeOfDay.equals("night", ignoreCase = true) }
+                if (nightTime != null && nightTime.dosage > 0) {
+                    // Create a night notification for today
+                    calendar.set(Calendar.HOUR_OF_DAY, nightHour) // Use configured time
+                    calendar.set(Calendar.MINUTE, nightMinute)
+                    
+                    val notificationId = "${prescription.id}-${medicine.medicine.drugName}-night"
+                    val isRead = calendar.time.before(currentTime) || notificationId in readNotificationIds
+                    
+                    notifications.add(
+                        Notification(
+                            id = notificationId,
+                            title = "Night Medication Reminder",
+                            description = "Time to take ${medicine.medicine.brandName} - ${nightTime.dosage} ${if (nightTime.dosage > 1) "tablets" else "tablet"} before bed",
+                            timestamp = calendar.time,
+                            type = NotificationType.MEDICATION,
+                            isRead = isRead
+                        )
+                    )
+                }
+            }
+            
+            // Add a reminder for prescription expiry if applicable
+            if (prescription.expiryDate != null && prescription.expiryDate.isNotEmpty()) {
+                try {
+                    // Parse the ISO date string directly
+                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    val expiryDate = inputFormat.parse(prescription.expiryDate)
+                    
+                    if (expiryDate != null) {
+                        val daysDiff = ((expiryDate.time - currentTime.time) / (1000 * 60 * 60 * 24)).toInt()
+                        
+                        // If expiry is within 7 days, add a notification
+                        if (daysDiff in 0..7) {
+                            val notificationId = "${prescription.id}-expiry"
+                            val isRead = notificationId in readNotificationIds
+                            
+                            notifications.add(
+                                Notification(
+                                    id = notificationId,
+                                    title = "Prescription Expiry Reminder",
+                                    description = "Your prescription will expire in $daysDiff days. Please renew it soon.",
+                                    timestamp = Date(currentTime.time - (1000 * 60 * 60)), // 1 hour ago
+                                    type = NotificationType.REMINDER,
+                                    isRead = isRead
+                                )
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Invalid date format, skip
+                }
+            }
+        }
+    }
     
-    notifications.add(
-        Notification(
-            id = "2",
-            title = "Upcoming Appointment",
-            description = "Dr. Sarah Johnson at Community Medical Center tomorrow at 10:00 AM",
-            timestamp = Date(currentTime.time - (1000 * 60 * 180)), // 3 hours ago
-            type = NotificationType.APPOINTMENT,
-            isRead = true
-        )
-    )
-    
-    // Yesterday's notifications
-    calendar.add(Calendar.DAY_OF_YEAR, -1)
-    val yesterday = calendar.time
-    
-    notifications.add(
-        Notification(
-            id = "3",
-            title = "Prescription Refill Reminder",
-            description = "Your heart medication prescription will expire in 5 days. Schedule a refill appointment.",
-            timestamp = yesterday,
-            type = NotificationType.REMINDER,
-            isRead = true
-        )
-    )
-    
-    // 2 days ago
-    calendar.add(Calendar.DAY_OF_YEAR, -1)
-    val twoDaysAgo = calendar.time
-    
-    notifications.add(
-        Notification(
-            id = "4",
-            title = "Health Report Available",
-            description = "Your recent blood test results are now available. Check the app to view details.",
-            timestamp = twoDaysAgo,
-            type = NotificationType.SYSTEM,
-            isRead = true
-        )
-    )
-    
-    // 3 days ago
-    calendar.add(Calendar.DAY_OF_YEAR, -1)
-    val threeDaysAgo = calendar.time
-    
-    notifications.add(
-        Notification(
-            id = "5",
-            title = "Medication Reminder",
-            description = "Time to take your evening dose of Metformin - 2 tablets after dinner",
-            timestamp = threeDaysAgo,
-            type = NotificationType.MEDICATION,
-            isRead = true
-        )
-    )
-    
-    notifications.add(
-        Notification(
-            id = "6",
-            title = "Doctor's Note",
-            description = "Dr. Miller has added notes from your last visit. Tap to review the details and recommended actions.",
-            timestamp = Date(threeDaysAgo.time + (1000 * 60 * 120)), // 2 hours after base time
-            type = NotificationType.APPOINTMENT,
-            isRead = true
-        )
-    )
-    
-    // A week ago
-    calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) - 4) // Now 7 days ago
-    val weekAgo = calendar.time
-    
-    notifications.add(
-        Notification(
-            id = "7",
-            title = "Appointment Reminder",
-            description = "You have a dental checkup with Dr. Patel tomorrow at 2:30 PM. Don't forget to bring your insurance card.",
-            timestamp = weekAgo,
-            type = NotificationType.APPOINTMENT,
-            isRead = true
-        )
-    )
-    
-    // 5 days ago
-    calendar.add(Calendar.DAY_OF_YEAR, -2) // Now 5 days ago from current
-    val fiveDaysAgo = calendar.time
-    
-    notifications.add(
-        Notification(
-            id = "8",
-            title = "Vaccination Reminder",
-            description = "Your annual flu shot is due this month. Visit any Medipal partner clinic to get vaccinated.",
-            timestamp = fiveDaysAgo,
-            type = NotificationType.REMINDER,
-            isRead = true
-        )
-    )
-    
-    // Today's health tip
-    notifications.add(
-        Notification(
-            id = "9",
-            title = "Daily Health Tip",
-            description = "Staying hydrated can help maintain energy levels and improve concentration. Aim for 8 glasses of water daily.",
-            timestamp = Date(currentTime.time - (1000 * 60 * 240)), // 4 hours ago
-            type = NotificationType.SYSTEM,
-            isRead = false
-        )
-    )
-    
-    return notifications
+    // Sort notifications by time (newest first for upcoming, oldest first for past)
+    return notifications.sortedBy { it.timestamp }
 } 

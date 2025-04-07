@@ -31,18 +31,20 @@ class PrescriptionAlarmManager(private val context: Context) {
      * @param prescriptionId ID of the prescription
      * @param medicineName Name of the medicine
      * @param dosage Dosage information
+     * @param medicineType Type of medicine (tablet, syrup, etc.)
      * @return The new notification state (true if enabled, false if disabled)
      */
     fun toggleNotifications(
         prescriptionId: String,
         medicineName: String,
-        dosage: String
+        dosage: String,
+        medicineType: String? = null
     ): Boolean {
         val newState = preferenceManager.toggleNotification(prescriptionId)
         
         if (newState) {
             // Enable notifications
-            scheduleRemindersForMedicine(prescriptionId, medicineName, dosage)
+            scheduleRemindersForMedicine(prescriptionId, medicineName, dosage, medicineType)
         } else {
             // Disable notifications
             cancelRemindersForPrescription(prescriptionId)
@@ -64,16 +66,17 @@ class PrescriptionAlarmManager(private val context: Context) {
     fun scheduleRemindersForMedicine(
         prescriptionId: String,
         medicineName: String,
-        dosage: String
+        dosage: String,
+        medicineType: String? = null
     ) {
         // Set preference to enabled
         preferenceManager.setNotificationEnabled(prescriptionId, true)
         
         // Schedule for all times
-        scheduleMorningReminder(prescriptionId, medicineName, dosage)
-        scheduleAfternoonReminder(prescriptionId, medicineName, dosage)
-        scheduleEveningReminder(prescriptionId, medicineName, dosage)
-        scheduleNightReminder(prescriptionId, medicineName, dosage)
+        scheduleMorningReminder(prescriptionId, medicineName, dosage, medicineType)
+        scheduleAfternoonReminder(prescriptionId, medicineName, dosage, medicineType)
+        scheduleEveningReminder(prescriptionId, medicineName, dosage, medicineType)
+        scheduleNightReminder(prescriptionId, medicineName, dosage, medicineType)
     }
     
     /**
@@ -106,7 +109,8 @@ class PrescriptionAlarmManager(private val context: Context) {
     private fun scheduleMorningReminder(
         prescriptionId: String,
         medicineName: String,
-        dosage: String
+        dosage: String,
+        medicineType: String? = null
     ) {
         val title = "Morning Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
@@ -119,7 +123,8 @@ class PrescriptionAlarmManager(private val context: Context) {
             message, 
             hour, 
             minute, 
-            MORNING_TAG
+            MORNING_TAG,
+            medicineType
         )
     }
     
@@ -129,7 +134,8 @@ class PrescriptionAlarmManager(private val context: Context) {
     private fun scheduleAfternoonReminder(
         prescriptionId: String,
         medicineName: String,
-        dosage: String
+        dosage: String,
+        medicineType: String? = null
     ) {
         val title = "Afternoon Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
@@ -142,7 +148,8 @@ class PrescriptionAlarmManager(private val context: Context) {
             message, 
             hour, 
             minute, 
-            AFTERNOON_TAG
+            AFTERNOON_TAG,
+            medicineType
         )
     }
     
@@ -152,7 +159,8 @@ class PrescriptionAlarmManager(private val context: Context) {
     private fun scheduleEveningReminder(
         prescriptionId: String,
         medicineName: String,
-        dosage: String
+        dosage: String,
+        medicineType: String? = null
     ) {
         val title = "Evening Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
@@ -165,7 +173,8 @@ class PrescriptionAlarmManager(private val context: Context) {
             message, 
             hour, 
             minute, 
-            EVENING_TAG
+            EVENING_TAG,
+            medicineType
         )
     }
     
@@ -175,7 +184,8 @@ class PrescriptionAlarmManager(private val context: Context) {
     private fun scheduleNightReminder(
         prescriptionId: String,
         medicineName: String,
-        dosage: String
+        dosage: String,
+        medicineType: String? = null
     ) {
         val title = "Night Medicine Reminder"
         val message = "Time to take $medicineName - $dosage"
@@ -188,7 +198,8 @@ class PrescriptionAlarmManager(private val context: Context) {
             message, 
             hour, 
             minute, 
-            NIGHT_TAG
+            NIGHT_TAG,
+            medicineType
         )
     }
     
@@ -203,7 +214,8 @@ class PrescriptionAlarmManager(private val context: Context) {
         message: String,
         hour: Int,
         minute: Int,
-        uniqueTag: String
+        uniqueTag: String,
+        medicineType: String? = null
     ) {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
@@ -223,7 +235,8 @@ class PrescriptionAlarmManager(private val context: Context) {
             "message" to message,
             "prescriptionId" to prescriptionId,
             "medicineName" to medicineName,
-            "dosage" to dosage
+            "dosage" to dosage,
+            "medicineType" to medicineType
         )
         
         val workRequest = OneTimeWorkRequestBuilder<PrescriptionAlarmWorker>()

@@ -1,5 +1,9 @@
 package com.example.medipal.ui.screens.viewmodels
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -11,6 +15,7 @@ import com.example.medipal.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class PrescriptionUiState(
@@ -25,17 +30,79 @@ class PrescriptionViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PrescriptionUiState())
     val uiState: StateFlow<PrescriptionUiState> = _uiState.asStateFlow()
+    
+    // Current prescription ID being viewed
+    private var currentPrescriptionId: String? = null
+    
+    // Broadcast receiver for refresh events
+    private var refreshReceiver: BroadcastReceiver? = null
+    
+    // Register the broadcast receiver
+    fun registerRefreshReceiver(context: Context) {
+        if (refreshReceiver == null) {
+            refreshReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    if (intent.action == ACTION_REFRESH_PRESCRIPTIONS) {
+                        Log.d("PrescriptionVM", "Received refresh broadcast")
+                        // Refresh the current prescription if we have an ID
+                        currentPrescriptionId?.let { prescriptionId ->
+                            fetchPrescription(prescriptionId)
+                        }
+                    }
+                }
+            }
+            
+            context.registerReceiver(
+                refreshReceiver,
+                IntentFilter(ACTION_REFRESH_PRESCRIPTIONS)
+            )
+            
+            Log.d("PrescriptionVM", "Registered prescription refresh receiver")
+        }
+    }
+    
+    // Unregister the broadcast receiver
+    fun unregisterRefreshReceiver(context: Context) {
+        refreshReceiver?.let {
+            try {
+                context.unregisterReceiver(it)
+                refreshReceiver = null
+                Log.d("PrescriptionVM", "Unregistered prescription refresh receiver")
+            } catch (e: Exception) {
+                Log.e("PrescriptionVM", "Error unregistering receiver: ${e.message}")
+            }
+        }
+    }
 
     fun fetchPrescription(prescriptionId: String) {
         _uiState.value = _uiState.value.copy(isLoading = true)
+        currentPrescriptionId = prescriptionId
         
         viewModelScope.launch {
             try {
+                Log.d("PrescriptionVM", "Fetching prescription $prescriptionId")
+                
+                // First check if we can get it from the local database
+                try {
+                    val localPrescriptions = prescriptionRepository.getCachedPrescriptions().first()
+                    val localPrescription = localPrescriptions.find { it.id == prescriptionId }
+                    
+                    if (localPrescription != null) {
+                        Log.d("PrescriptionVM", "Found prescription in local database")
+                        _uiState.value = PrescriptionUiState(prescription = localPrescription)
+                        return@launch
+                    }
+                    
+                    Log.d("PrescriptionVM", "Prescription not found in local database, trying server")
+                } catch (e: Exception) {
+                    Log.e("PrescriptionVM", "Error fetching from local db: ${e.message}")
+                }
+                
                 // Get the user's phone number if logged in
                 val user = userRepository.getUser()
                 val phoneNumber = user?.phoneNumber ?: ""
                 
-                Log.d("PrescriptionVM", "Fetching prescription $prescriptionId with phone: $phoneNumber")
+                Log.d("PrescriptionVM", "Fetching prescription from server: $prescriptionId with phone: $phoneNumber")
                 
                 // First try with phone authentication if available
                 if (phoneNumber.isNotBlank()) {
@@ -87,17 +154,26 @@ class PrescriptionViewModel(
                         }
                     }
                 } else {
-                    _uiState.value = PrescriptionUiState(error = "Error: ${result.exceptionOrNull()?.message}")
-                    Log.e("PrescriptionVM", "Error loading prescription", result.exceptionOrNull())
+                    _uiState.value = PrescriptionUiState(error = "Error loading prescription: ${result.exceptionOrNull()?.message}")
+                    Log.e("PrescriptionVM", "Error loading prescription: ${result.exceptionOrNull()?.message}")
                 }
             } catch (e: Exception) {
-                _uiState.value = PrescriptionUiState(error = e.message)
+                _uiState.value = PrescriptionUiState(error = "Error: ${e.message}")
                 Log.e("PrescriptionVM", "Exception loading prescription", e)
             }
         }
     }
+    
+    override fun onCleared() {
+        super.onCleared()
+        currentPrescriptionId = null
+        // Note: Cannot unregister receiver here since we don't have context
+        // This is handled by the UI component
+    }
 
     companion object {
+        const val ACTION_REFRESH_PRESCRIPTIONS = "com.example.medipal.ACTION_REFRESH_PRESCRIPTIONS"
+        
         val factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {

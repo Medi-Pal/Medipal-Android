@@ -52,6 +52,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                         // Create alarm manager and schedule reminders
                         val alarmManager = PrescriptionAlarmManager(context)
                         val medicineName = firstMedicine.medicine.brandName
+                        val medicineType = firstMedicine.medicine.type
                         
                         // Get dosage text
                         val dosage = getDosageText(firstMedicine)
@@ -60,7 +61,8 @@ class BootCompletedReceiver : BroadcastReceiver() {
                         alarmManager.scheduleRemindersForMedicine(
                             prescriptionId = prescription.id,
                             medicineName = medicineName,
-                            dosage = dosage
+                            dosage = dosage,
+                            medicineType = medicineType
                         )
                         
                         Log.d("BootCompletedReceiver", "Restored notifications for prescription ${prescription.id}")
@@ -78,11 +80,40 @@ class BootCompletedReceiver : BroadcastReceiver() {
         val eveningDose = times.find { it.timeOfDay.equals("evening", ignoreCase = true) }?.dosage ?: 0
         val nightDose = times.find { it.timeOfDay.equals("night", ignoreCase = true) }?.dosage ?: 0
         
+        // Get appropriate unit based on medicine type
+        val medicineType = medicine.medicine.type
+        
+        fun getUnitText(dosage: Int): String {
+            return when (medicineType?.lowercase()) {
+                "tablet", "tablets", "pill", "pills", "capsule", "capsules" -> 
+                    if (dosage == 1) "tablet" else "tablets"
+                "syrup", "liquid", "solution" -> "ml"
+                "drop", "drops" -> if (dosage == 1) "drop" else "drops"
+                "cream", "ointment", "gel" -> "application"
+                "injection", "shot" -> if (dosage == 1) "injection" else "injections"
+                "spray", "puff" -> if (dosage == 1) "spray" else "sprays"
+                "sachet", "powder" -> if (dosage == 1) "sachet" else "sachets"
+                else -> "" // Default to empty string if type is unknown
+            }
+        }
+        
         val parts = mutableListOf<String>()
-        if (morningDose > 0) parts.add("$morningDose in morning")
-        if (afternoonDose > 0) parts.add("$afternoonDose in afternoon")
-        if (eveningDose > 0) parts.add("$eveningDose in evening")
-        if (nightDose > 0) parts.add("$nightDose at night")
+        if (morningDose > 0) {
+            val unit = getUnitText(morningDose)
+            parts.add("$morningDose ${if (unit.isNotEmpty()) "$unit " else ""}in morning")
+        }
+        if (afternoonDose > 0) {
+            val unit = getUnitText(afternoonDose)
+            parts.add("$afternoonDose ${if (unit.isNotEmpty()) "$unit " else ""}in afternoon")
+        }
+        if (eveningDose > 0) {
+            val unit = getUnitText(eveningDose)
+            parts.add("$eveningDose ${if (unit.isNotEmpty()) "$unit " else ""}in evening")
+        }
+        if (nightDose > 0) {
+            val unit = getUnitText(nightDose)
+            parts.add("$nightDose ${if (unit.isNotEmpty()) "$unit " else ""}at night")
+        }
         
         return if (parts.isNotEmpty()) {
             parts.joinToString(", ")
